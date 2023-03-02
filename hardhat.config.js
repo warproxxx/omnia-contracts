@@ -1,9 +1,8 @@
-require("@nomiclabs/hardhat-waffle");
 require('hardhat-abi-exporter');
 require("hardhat-interface-generator");
 require('hardhat-contract-sizer');
 require("hardhat-gas-reporter");
-require("@nomiclabs/hardhat-etherscan");
+require("@nomiclabs/hardhat-ethers");
 
 require('dotenv').config()
 /**
