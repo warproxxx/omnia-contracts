@@ -16,28 +16,28 @@ function getGenericVaultParams(pairs) {
     
     for (const [key, value] of Object.entries(pairs)) {
         let params = {}
-        params['collection'] = value
+        params['collection'] = value.address
 
         if (key == 'WETH') {
-            params['MAX_LTV'] = 0.8
-            params['MAX_DURATION'] = 60
-            params['MAX_APR'] = 20
+            params['MAX_LTV'] = 800
+            params['MAX_DURATION'] = 6000
+            params['MAX_APR'] = 2000
             params['slope'] = 1
         } else if (key == 'WBTC') {
-            params['MAX_LTV'] = 0.9
-            params['MAX_DURATION'] = 90
-            params['MAX_APR'] = 10
+            params['MAX_LTV'] = 900
+            params['MAX_DURATION'] = 9000
+            params['MAX_APR'] = 1000
             params['slope'] = 1
         } else if (key == 'USDC') {
-            params['MAX_LTV'] = 1
-            params['MAX_DURATION'] = 180
-            params['MAX_APR'] = 5
+            params['MAX_LTV'] = 1000
+            params['MAX_DURATION'] = 18000
+            params['MAX_APR'] = 500
             params['slope'] = 1
         }
 
         whitelisted.push(params)
 
-        addys.push(value)
+        addys.push(value.address)
     }
 
     return [{
