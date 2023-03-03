@@ -9,13 +9,40 @@ const { ethers } = require("hardhat");
 let abis = {}
 abis['ERC20_ABI'] = '[{"constant":true,"inputs":[],"name":"name","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_from","type":"address"},{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transferFrom","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"balance","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transfer","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"},{"name":"_spender","type":"address"}],"name":"allowance","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"payable":true,"stateMutability":"payable","type":"fallback"},{"anonymous":false,"inputs":[{"indexed":true,"name":"owner","type":"address"},{"indexed":true,"name":"spender","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"from","type":"address"},{"indexed":true,"name":"to","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Transfer","type":"event"}]'
 
-function getGenericVaultParams() {
-    let vaultDetails = { 
-        VAULT_NAME: "Basic Vault", 
-        VAULT_DESCRIPTION: "Low Risk yield parking", 
+function getGenericVaultParams(pairs) {
+
+    let whitelisted = []
+    let addys = []
+    
+    for (const [key, value] of Object.entries(pairs)) {
+        let params = {}
+        params['collection'] = value
+
+        if (key == 'WETH') {
+            params['MAX_LTV'] = 0.8
+            params['MAX_DURATION'] = 60
+            params['MAX_APR'] = 20
+            params['slope'] = 1
+        } else if (key == 'WBTC') {
+            params['MAX_LTV'] = 0.9
+            params['MAX_DURATION'] = 90
+            params['MAX_APR'] = 10
+            params['slope'] = 1
+        } else if (key == 'USDC') {
+            params['MAX_LTV'] = 1
+            params['MAX_DURATION'] = 180
+            params['MAX_APR'] = 5
+            params['slope'] = 1
+        }
+
+        whitelisted.push(params)
+
+        addys.push(value)
     }
 
-    return vaultDetails
+    return [{
+        VAULT_NAME: "Omnia Vault",
+        VAULT_DESCRIPTION: "The Default Vault Provides balance Loans"}, addys, whitelisted]
 
 }
 
@@ -24,7 +51,6 @@ async function deployContracts(testnet=true){
     let [signer] = await ethers.getSigners();
     let addresses = {}
     let pairs = {};
-    let pairs_address = []
     let AGGREGATOR = "0xf4030086522a5beea4988f8ca5b36dbc97bee88c";
     let WETH_CONTRACT = "";
 
@@ -34,19 +60,16 @@ async function deployContracts(testnet=true){
         await weth.deployed();  
         console.log("WETH Contract Deployed at " + weth.address);
         pairs['WETH'] = weth
-        pairs_address.push(weth.address)
 
         wbtc = await ERC20.deploy(signer.address, BigInt(24000) * BigInt(10**18));
         await wbtc.deployed();  
         console.log("WBTC Contract Deployed at " + wbtc.address);
         pairs['WBTC'] = wbtc
-        pairs_address.push(wbtc.address)
 
         usdc = await ERC20.deploy(signer.address, BigInt(1) * BigInt(10**18));
         await usdc.deployed();  
         console.log("USDC Contract Deployed at " + usdc.address);
         pairs['USDC'] = usdc
-        pairs_address.push(usdc.address)
 
     }
    
@@ -67,8 +90,8 @@ async function deployContracts(testnet=true){
     console.log("Vault Manager Contract Deployed at " + vm.address);
     addresses['VM'] = vm.address
 
-    // let [params] = getGenericVaultParams()
-    await vm.createVault({WHITELISTED_COLLECTIONS: pairs_address})
+    let [_VAULT_DETAILS, _WHITELISTED_ASSETS, _WHITELISTED_DETAILS] = getGenericVaultParams(pairs)
+    await vm.createVault(_VAULT_DETAILS, _WHITELISTED_ASSETS, _WHITELISTED_DETAILS)
 
     console.log("Vault created")
 

@@ -23,10 +23,10 @@ contract VaultManager {
     }
 
 
-    function createVault(VaultDetails memory _VAULT_DETAILS) public returns (address vault) {
+    function createVault(VaultDetails memory _VAULT_DETAILS, address[] memory _WHITELISTED_ASSETS,  Whitelisted[] memory _WHITELISTED_DETAILS) public returns (address vault) {
 
         vault = Clones.clone(VAULT);
-        IVault(vault).initialize(_VAULT_DETAILS);
+        IVault(vault).initialize(_VAULT_DETAILS, _WHITELISTED_ASSETS, _WHITELISTED_DETAILS);
         vaults.push(address(vault));
         
     }
