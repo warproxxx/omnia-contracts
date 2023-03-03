@@ -26,7 +26,8 @@ contract Vault is ERC1155, ReentrancyGuard {
 
     function initialize(VaultDetails memory _VAULT_DETAILS, address[] memory _WHITELISTED_ASSETS,  Whitelisted[] memory _WHITELISTED_DETAILS) external{
         VAULT_DETAILS = _VAULT_DETAILS;
-        
+        WHITELISTED_ASSETS = _WHITELISTED_ASSETS;
+
         uint length = _WHITELISTED_ASSETS.length;
         
         for (uint i; i< length; ) {
@@ -46,10 +47,14 @@ contract Vault is ERC1155, ReentrancyGuard {
     function getUSDBalance() public view returns (uint256){
         uint256 usd_balance = 0;
 
-        for (uint i; i < WHITELISTED_ASSETS.length; ) {
-            uint256 curr_balance = IERC20(WHITELISTED_ASSETS[i]).balanceOf(address(this)) * IOracle(VAULT_DETAILS.ORACLE_CONTRACT).getPrice(WHITELISTED_ASSETS[i]);
+        for (uint i=0; i < WHITELISTED_ASSETS.length; i++ ) {
+            uint256 user_balance = IERC20(WHITELISTED_ASSETS[i]).balanceOf(address(this));
+            uint256 oracle_price = IOracle(VAULT_DETAILS.ORACLE_CONTRACT).getPrice(WHITELISTED_ASSETS[i]);
+            console.log(user_balance);
+            console.log(oracle_price);
+
+            uint256 curr_balance = (user_balance/10**3) * (oracle_price / 10**15);
             usd_balance = usd_balance + curr_balance;
-            unchecked { ++i; }
         }
 
         //loop thru loans and hedges too

@@ -19,7 +19,7 @@ contract Oracle {
     }
 
     constructor(address _ADMIN) {
-        ADMIN = _ADMIN  ;
+        ADMIN = _ADMIN;
     }   
 
     function setAggregators(address[] calldata _addresses, address[] calldata _aggregators) public onlyAdmin{
@@ -43,14 +43,17 @@ contract Oracle {
 
     function getPrice(address _address) public view returns (uint256) {
 
-        AggregatorV3Interface priceFeed = AggregatorV3Interface(aggregators[_address]);
-        (, int256 answer, , uint256 updatedAt, ) = priceFeed.latestRoundData();
+        if (aggregators[_address].code.length > 0) {
+            AggregatorV3Interface priceFeed = AggregatorV3Interface(aggregators[_address]);
+            (, int256 answer, , uint256 updatedAt, ) = priceFeed.latestRoundData();
 
-        if (answer != 0){
-            return (uint256(answer));
+           return (uint256(answer));
         } else {
             return prices[_address];
         }
+        
+
+       
     }
 }
 

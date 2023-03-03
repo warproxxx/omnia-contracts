@@ -100,14 +100,13 @@ async function deployContracts(testnet=true){
 
     let [_VAULT_DETAILS, _WHITELISTED_ASSETS, _WHITELISTED_DETAILS] = getGenericVaultParams(pairs)
 
-    console.log(_VAULT_DETAILS, _WHITELISTED_ASSETS, _WHITELISTED_DETAILS)
     await vm.createVault(_VAULT_DETAILS, _WHITELISTED_ASSETS, _WHITELISTED_DETAILS)
 
     console.log("Vault created")
 
     if (testnet == true) {
-        await or.updatePrices([pairs['WBTC'].address], [BigInt(24) * BigInt(10**18)]);
-        await or.updatePrices([pairs['WETH'].address], [BigInt(16) * BigInt(10**18)]);
+        await or.updatePrices([pairs['WBTC'].address], [BigInt(24000) * BigInt(10**18)]);
+        await or.updatePrices([pairs['WETH'].address], [BigInt(1600) * BigInt(10**18)]);
         await or.updatePrices([pairs['USDC'].address], [BigInt(10**18)]);
     }
 

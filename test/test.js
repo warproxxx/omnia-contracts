@@ -36,11 +36,11 @@ describe('Contract tests', () => {
         expect(BigInt(await vault.balanceOf(owner.address, 0))).to.equal(amt);
         expect(BigInt(await pairs['WETH'].balanceOf(vault.address)) >= amt).to.equal(true);
 
-        console.log(await vault.getUSDBalance())  
 
-        // await vault.withdrawLiquidity(amt, pairs['WETH'].address);
+        expect(BigInt(await vault.getUSDBalance()) / BigInt(10**18) >= BigInt(1500))  
+        await vault.withdrawLiquidity(amt, pairs['WETH'].address);
 
-        // await vault.addLiquidity(amt, pairs['WETH'].address);
+        await vault.addLiquidity(amt, pairs['WETH'].address);
     })
 
     it("Take and Repay Loan", async function () {
