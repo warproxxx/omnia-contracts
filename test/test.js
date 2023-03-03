@@ -44,7 +44,18 @@ describe('Contract tests', () => {
     })
 
     it("Take and Repay Loan", async function () {
-        
+        let currDate = Math.floor((new Date()).getTime() / 1000)
+        let repaymentDate = currDate + (30 * 86400)
+
+        await vault.createLoan(pairs['WETH'].address, pairs['WETH'].address, BigInt(2) * BigInt(10**18) , BigInt(10**18), repaymentDate)
+
+        let loanDetails = await vault._loans(1)
+
+        expect((loanDetails.repayment / 10**18 ).toFixed(3)).to.equal('1.041');
+        expect((loanDetails.principal / 10**18 ).toFixed(3)).to.equal('1.000');
+
+        await pairs['WETH'].approve(vault.address, ethers.constants.MaxUint256);
+        await vault.repayLoan(1)
     })
 
 })  

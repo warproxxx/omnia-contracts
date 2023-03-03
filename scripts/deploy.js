@@ -18,21 +18,30 @@ function getGenericVaultParams(pairs) {
         let params = {}
         params['collection'] = value.address
 
+        //everything is *100
         if (key == 'WETH') {
-            params['MAX_LTV'] = 800
+            params['MAX_LTV'] = 80
             params['MAX_DURATION'] = 6000
             params['MAX_APR'] = 2000
-            params['slope'] = 1
+            params['MIN_APR'] = 500
+            params['slope'] = 10 * 100
+            params['intercept'] = 400
+
         } else if (key == 'WBTC') {
-            params['MAX_LTV'] = 900
+            params['MAX_LTV'] = 90
             params['MAX_DURATION'] = 9000
             params['MAX_APR'] = 1000
-            params['slope'] = 1
+            params['MIN_APR'] = 500
+            params['slope'] = 10 * 100
+            params['intercept'] = 400
+
         } else if (key == 'USDC') {
-            params['MAX_LTV'] = 1000
+            params['MAX_LTV'] = 100
             params['MAX_DURATION'] = 18000
             params['MAX_APR'] = 500
-            params['slope'] = 1
+            params['MIN_APR'] = 500
+            params['slope'] = 10 * 100
+            params['intercept'] = 400
         }
 
         params['lp_enabled'] = true;

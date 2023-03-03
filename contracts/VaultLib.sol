@@ -11,14 +11,18 @@ struct Whitelisted{
     uint32 MAX_LTV;
     uint32 MAX_DURATION;
     uint32 MAX_APR;
+    uint32 MIN_APR;
     uint32 slope;
+    uint32 intercept;
     bool lp_enabled;
 }
 
 struct Loan {
     uint256 timestamp;
     address collateral;
+    address loan_asset;
     uint256 repaymentDate;
     uint256 principal;
     uint256 repayment;    
+    uint256 lockedAmount;
 }
