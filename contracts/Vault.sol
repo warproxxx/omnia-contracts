@@ -5,6 +5,7 @@ import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuar
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 import { IOracle } from "./interfaces/IOracle.sol";
+import { IGMX } from "./interfaces/IGMX.sol";
 
 import { VaultDetails, Whitelisted, Loan } from "./VaultLib.sol";
 
@@ -68,6 +69,26 @@ contract Vault is ERC1155, ReentrancyGuard {
          return usd_balance;
     }
 
+    function hedgePositions() public {
+        for (uint i=1; i <= _nextId; i++ ) {
+            Loan memory curr_loan = _loans[i];
+
+            if (curr_loan.timestamp != 0){
+
+                uint256 collateral_value = getUSDValue(curr_loan.collateral, curr_loan.principal);
+                uint256 loan_value = getUSDValue(curr_loan.loan_asset, curr_loan.repayment);
+
+                if (loan_value < collateral_value && !curr_loan.isHedged){
+                    //open short position
+                }
+
+                if (curr_loan.isHedged && loan_value > collateral_value){
+                    //close short position
+                }
+            }
+        }
+    }
+
     function getBalanceIn(address _asset) public view returns (uint256) {
         uint256 price = IOracle(VAULT_DETAILS.ORACLE_CONTRACT).getPrice(_asset);
         return (getUSDBalance() * 1000 / price) / 1000;
@@ -108,7 +129,8 @@ contract Vault is ERC1155, ReentrancyGuard {
             repaymentDate: _repaymentDate,
             principal: _loan_amount,
             repayment: repayment,
-            lockedAmount: _collateral_amount
+            lockedAmount: _collateral_amount,
+            isHedged: false
         });
 
         _mint(msg.sender, loanId, 1, "");

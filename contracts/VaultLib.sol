@@ -4,6 +4,7 @@ struct VaultDetails {
     string VAULT_NAME;
     string VAULT_DESCRIPTION;
     address ORACLE_CONTRACT;
+    uint32 MAX_LEVERAGE;
 }
 
 struct Whitelisted{
