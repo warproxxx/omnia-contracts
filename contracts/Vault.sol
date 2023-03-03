@@ -52,7 +52,18 @@ contract Vault is ERC1155, ReentrancyGuard {
             usd_balance = usd_balance + curr_balance;
         }
 
-        //loop thru loans and hedges too
+        for (uint i=1; i <= _nextId; i++ ) {
+            Loan memory curr_loan = _loans[i];
+
+            if (curr_loan.timestamp != 0){
+                usd_balance = usd_balance - getUSDValue(curr_loan.collateral, curr_loan.principal);
+                uint256 duration_done = (block.timestamp - curr_loan.timestamp) * 10000 / (curr_loan.repaymentDate - curr_loan.timestamp);
+                usd_balance = usd_balance + ((getUSDValue(curr_loan.loan_asset, curr_loan.repayment) * duration_done) / 10000);
+            }
+        }
+
+        //integrate hedges too
+            
 
          return usd_balance;
     }
@@ -100,7 +111,6 @@ contract Vault is ERC1155, ReentrancyGuard {
             lockedAmount: _collateral_amount
         });
 
-
         _mint(msg.sender, loanId, 1, "");
         emit loanCreated(_loans[loanId], msg.sender, loanId);
     }
@@ -111,7 +121,6 @@ contract Vault is ERC1155, ReentrancyGuard {
         
         bool success = IERC20(curr_loan.loan_asset).transferFrom(msg.sender, address(this), curr_loan.repayment);  
 
-        // changed: completed error message
         require(success, "UNSUCCESSFUL_TRANSFER");
 
         IERC20(curr_loan.collateral).transfer(msg.sender, curr_loan.lockedAmount);  
@@ -133,7 +142,7 @@ contract Vault is ERC1155, ReentrancyGuard {
 
         bool success = IERC20(_asset).transferFrom(msg.sender, address(this), _amount);        
         if (success == false) {revert();}
-
+        
         _mint(msg.sender, LIQUIDITY_POSITION, shares, "");
 
         emit LiquidityAdded(_asset, _amount, shares, msg.sender);
