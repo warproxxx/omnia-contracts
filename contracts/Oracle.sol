@@ -41,7 +41,7 @@ contract Oracle {
         }
     }
 
-    function getPrice(address _address, uint256 _id) public view returns (uint256) {
+    function getPrice(address _address) public view returns (uint256) {
 
         AggregatorV3Interface priceFeed = AggregatorV3Interface(aggregators[_address]);
         (, int256 answer, , uint256 updatedAt, ) = priceFeed.latestRoundData();

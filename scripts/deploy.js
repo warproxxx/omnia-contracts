@@ -35,6 +35,8 @@ function getGenericVaultParams(pairs) {
             params['slope'] = 1
         }
 
+        params['lp_enabled'] = true;
+
         whitelisted.push(params)
 
         addys.push(value.address)
@@ -42,7 +44,9 @@ function getGenericVaultParams(pairs) {
 
     return [{
         VAULT_NAME: "Omnia Vault",
-        VAULT_DESCRIPTION: "The Default Vault Provides balance Loans"}, addys, whitelisted]
+        VAULT_DESCRIPTION: "The Default Vault Provides balance Loans", 
+        ORACLE_CONTRACT: '0x0000000000000000000000000000000000000000'
+    }, addys, whitelisted]
 
 }
 
@@ -71,6 +75,10 @@ async function deployContracts(testnet=true){
         console.log("USDC Contract Deployed at " + usdc.address);
         pairs['USDC'] = usdc
 
+        await weth.mint(signer.address);
+        await wbtc.mint(signer.address);
+        await usdc.mint(signer.address);
+
     }
    
     const Oracle = await ethers.getContractFactory("Oracle");
@@ -91,6 +99,8 @@ async function deployContracts(testnet=true){
     addresses['VM'] = vm.address
 
     let [_VAULT_DETAILS, _WHITELISTED_ASSETS, _WHITELISTED_DETAILS] = getGenericVaultParams(pairs)
+
+    console.log(_VAULT_DETAILS, _WHITELISTED_ASSETS, _WHITELISTED_DETAILS)
     await vm.createVault(_VAULT_DETAILS, _WHITELISTED_ASSETS, _WHITELISTED_DETAILS)
 
     console.log("Vault created")
