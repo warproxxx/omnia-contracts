@@ -19,32 +19,36 @@ function getGenericVaultParams() {
 
 }
 
-async function deployContracts(testnet=true, receivers=[]){
+async function deployContracts(testnet=true){
+
     let [signer] = await ethers.getSigners();
     let addresses = {}
     let pairs = {};
+    let pairs_address = []
+    let AGGREGATOR = "0xf4030086522a5beea4988f8ca5b36dbc97bee88c";
+    let WETH_CONTRACT = "";
 
     if (testnet == true) {
         const ERC20 = await ethers.getContractFactory("ERC20");
-
-        weth = await ERC20.deploy(signer.addres_at_onces, 1 * 10**18);
+        weth = await ERC20.deploy(signer.address, BigInt(1600) * BigInt(10**18));
         await weth.deployed();  
         console.log("WETH Contract Deployed at " + weth.address);
         pairs['WETH'] = weth
+        pairs_address.push(weth.address)
 
-        wbtc = await ERC20.deploy(signer.address, 0.1 * 10**18);
+        wbtc = await ERC20.deploy(signer.address, BigInt(24000) * BigInt(10**18));
         await wbtc.deployed();  
         console.log("WBTC Contract Deployed at " + wbtc.address);
         pairs['WBTC'] = wbtc
+        pairs_address.push(wbtc.address)
 
-        usdc = await ERC20.deploy(signer.address, 1000 * 10**18);
+        usdc = await ERC20.deploy(signer.address, BigInt(1) * BigInt(10**18));
         await usdc.deployed();  
         console.log("USDC Contract Deployed at " + usdc.address);
         pairs['USDC'] = usdc
-        
-    }
-    
+        pairs_address.push(usdc.address)
 
+    }
    
     const Oracle = await ethers.getContractFactory("Oracle");
     or = await Oracle.deploy(signer.address);
@@ -58,21 +62,20 @@ async function deployContracts(testnet=true, receivers=[]){
     await vb.deployed();  
     
     const VaultManager = await ethers.getContractFactory("VaultManager");
-    let vm = await VaultManager.deploy({ASSET: WETH_CONTRACT, AUCTION_CONTRACT: pe.address, BASE_VAULT: vb.address, ORACLE_CONTRACT: or.address, PEPEFI_ADMIN: signer.address, VAULT_MANAGER: '0x0000000000000000000000000000000000000000'} );
+    let vm = await VaultManager.deploy(vb.address, or.address, signer.address);
     await vm.deployed();  
     console.log("Vault Manager Contract Deployed at " + vm.address);
     addresses['VM'] = vm.address
 
-
-    let [params] = getGenericVaultParams()
-    await vm.createVault(params)
+    // let [params] = getGenericVaultParams()
+    await vm.createVault({WHITELISTED_COLLECTIONS: pairs_address})
 
     console.log("Vault created")
 
     if (testnet == true) {
-        await or.updatePrices([pairs['WBTC'].address], [24 * 10**18]);
-        await or.updatePrices([pairs['WETH'].address], [16 * 10**18]);
-        await or.updatePrices([pairs['USDC'].address], [10**18]);
+        await or.updatePrices([pairs['WBTC'].address], [BigInt(24) * BigInt(10**18)]);
+        await or.updatePrices([pairs['WETH'].address], [BigInt(16) * BigInt(10**18)]);
+        await or.updatePrices([pairs['USDC'].address], [BigInt(10**18)]);
     }
 
     let vaults = await vm.getVaults()
@@ -129,7 +132,7 @@ async function deploy(){
 
 
 if (require.main === module) {
-    deploy()
+    deployContracts()
 }
 
 
