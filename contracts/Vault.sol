@@ -60,17 +60,29 @@ contract Vault is ERC1155, ReentrancyGuard {
         for (uint i=0; i < WHITELISTED_ASSETS.length; i++ ) {
             //first check basic balance
             uint256 curr_balance = getUSDValue(WHITELISTED_ASSETS[i], IERC20(WHITELISTED_ASSETS[i]).balanceOf(address(this)));
+
             usd_balance = usd_balance + curr_balance;
 
-            //for delta
-            //use curr_balance above
+            uint256 curr_idx = idx[WHITELISTED_ASSETS[i]];
+
+            deltas[curr_idx].delta = deltas[curr_idx].delta + curr_balance;
+            deltas[curr_idx].direction = true;
 
             //now for hedges
             GMXPosition memory pos = IGMX(VAULT_DETAILS.GMX_CONTRACT).getPosition(msg.sender, MAIN_ASSET, WHITELISTED_ASSETS[i], false);
 
             if (pos.size > 0){
                 uint256 posSize  = (pos.size/10**3) * (pos.averagePrice / 10**15);
-                usd_balance = usd_balance + posSize;
+                usd_balance = usd_balance + pos.collateral;
+
+                if (deltas[curr_idx].delta > posSize){
+                    deltas[curr_idx].delta = deltas[curr_idx].delta  - posSize;
+                    deltas[curr_idx].direction = true;
+                }
+                else{
+                    deltas[curr_idx].delta = posSize - deltas[curr_idx].delta;
+                    deltas[curr_idx].direction = false;
+                }
 
                 (bool hasProfit, uint256 delta) = IGMX(VAULT_DETAILS.GMX_CONTRACT).getDelta(WHITELISTED_ASSETS[i], pos.size, pos.averagePrice, false, pos.lastIncreasedTime);
                 
@@ -100,40 +112,55 @@ contract Vault is ERC1155, ReentrancyGuard {
                 uint256 loan_value = getUSDValue(curr_loan.loan_asset, curr_loan.repayment);
 
                 if (collateral_value < ((loan_value * 101) / 100)){
-                    deltas[idx[curr_loan.loan_asset]].delta = deltas[idx[curr_loan.loan_asset]].delta + loan_value;
-                    deltas[idx[curr_loan.loan_asset]].direction = false;
+                    
+                    uint256 new_idx = idx[curr_loan.loan_asset];
+
+                    if (deltas[new_idx].delta > loan_value){
+                        deltas[new_idx].delta = deltas[new_idx].delta  - loan_value;
+                        deltas[new_idx].direction = true;
+                    }
+                    else{
+                        deltas[new_idx].delta = loan_value - deltas[new_idx].delta;
+                        deltas[new_idx].direction = false;
+                    }                    
                 }
             }
         }
-        
-
-        
 
          return (usd_balance, deltas);
     }
 
 
     function hedgePositions() external {
-        //need to find delta here.
-        //  IGMX(VAULT_DETAILS.GMX_CONTRACT).increasePosition(msg.sender, MAIN_ASSET, curr_loan.loan_asset, loan_value, false);
-        // uint256 hedgeId = uint256(keccak256(abi.encodePacked(msg.sender, MAIN_ASSET, curr_loan.loan_asset, false)));
-
-        // _loans[i].hedgeId = hedgeId;
-        // _loans[i].collateralSize = collateralSize;
-        // _loans[i].hedgeSize = loan_value;
-
-        // //open short position
-        // uint256 collateralSize =  loan_value * 2;
-        // IERC20(MAIN_ASSET).approve(VAULT_DETAILS.GMX_CONTRACT, collateralSize);
-        // IERC20(MAIN_ASSET).transfer(VAULT_DETAILS.GMX_CONTRACT, collateralSize);
-
-        // //close short position
-        // IGMX(VAULT_DETAILS.GMX_CONTRACT).decreasePosition(msg.sender, MAIN_ASSET, curr_loan.loan_asset, curr_loan.collateralSize,  curr_loan.hedgeSize, false, msg.sender);
-        // _loans[i].hedgeId = 0;
-        // _loans[i].collateralSize = 0;
-        // _loans[i].hedgeSize = 0;
+        (uint256 usd_balance, Delta[] memory deltas) = getUSDBalanceAndDelta();
 
 
+        for (uint i=0; i < deltas.length; i++ ) {
+            Delta memory curr_delta = deltas[i];
+            uint256 targetPos = (curr_delta.delta * WHITELISTED_DETAILS[curr_delta.collection].HEDGE_PERCENTAGE)/100;
+            
+            GMXPosition memory pos = IGMX(VAULT_DETAILS.GMX_CONTRACT).getPosition(msg.sender, MAIN_ASSET, curr_delta.collection, false);
+            
+            
+
+
+            if (curr_delta.delta * 100 / usd_balance > WHITELISTED_DETAILS[curr_delta.collection].HEDGE_AT ){
+                if (pos.size > curr_delta.delta){
+                    //decrease iif
+                } else if (pos.size < curr_delta.delta){
+                    uint256 diff = curr_delta.delta - pos.size;
+
+                    // if (diff > XX){
+                    //     IGMX(VAULT_DETAILS.GMX_CONTRACT).increasePosition(msg.sender, MAIN_ASSET, curr_loan.loan_asset, loan_value, false);
+                    // }
+                }
+
+            } else {
+                // if (pos.size){
+                //     IGMX(VAULT_DETAILS.GMX_CONTRACT).decreasePosition(msg.sender, MAIN_ASSET, curr_delta.collection, collateralSize,  curr_loan.hedgeSize, false, msg.sender);
+                // }
+            }
+        }
     }
 
     // function getBalanceIn(address _asset) public view returns (uint256) {
@@ -186,10 +213,7 @@ contract Vault is ERC1155, ReentrancyGuard {
             repaymentDate: _repaymentDate,
             principal: _loan_amount,
             repayment: repayment,
-            lockedAmount: _collateral_amount,
-            hedgeId: 0,
-            collateralSize: 0,
-            hedgeSize: 0
+            lockedAmount: _collateral_amount
         });
 
         _mint(msg.sender, loanId, 1, "");

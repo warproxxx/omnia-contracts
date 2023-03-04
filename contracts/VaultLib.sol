@@ -26,7 +26,6 @@ struct Whitelisted{
     uint32 MAX_EXPOSURE;
     uint32 HEDGE_AT;
     uint32 HEDGE_PERCENTAGE;
-
     bool lp_enabled;
 }
 
@@ -38,9 +37,6 @@ struct Loan {
     uint256 principal;
     uint256 repayment;    
     uint256 lockedAmount;
-    uint256 hedgeId;
-    uint256 collateralSize;
-    uint256 hedgeSize;
 
 }
 
