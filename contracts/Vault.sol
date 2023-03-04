@@ -16,7 +16,7 @@ contract Vault is ERC1155, ReentrancyGuard {
     VaultDetails private VAULT_DETAILS;
     address[] public WHITELISTED_ASSETS;
     address public MAIN_ASSET;
-    mapping(address => Whitelisted) private WHITELISTED_DETAILS;
+    mapping(address => Whitelisted) public WHITELISTED_DETAILS;
 
     mapping(uint256 => Loan) public _loans;
 
@@ -25,9 +25,9 @@ contract Vault is ERC1155, ReentrancyGuard {
 
     uint256 public totalSupply = 0;
 
-    event LiquidityAdded(address asset, uint256 amount, uint256 shares, address _lp);
-    event LiquidtyRemoved(address asset, uint256 amount, uint256 shares, address _lp);
-    event loanCreated(Loan loan_details, address borrower, uint256 loanId);
+    // event LiquidityAdded(address asset, uint256 amount, uint256 shares, address _lp);
+    // event LiquidtyRemoved(address asset, uint256 amount, uint256 shares, address _lp);
+    // event loanCreated(Loan loan_details, address borrower, uint256 loanId);
 
     function initialize(VaultDetails memory _VAULT_DETAILS, address[] memory _WHITELISTED_ASSETS,  Whitelisted[] memory _WHITELISTED_DETAILS) external{
         VAULT_DETAILS = _VAULT_DETAILS;
@@ -131,10 +131,10 @@ contract Vault is ERC1155, ReentrancyGuard {
         }
     }
 
-    function getBalanceIn(address _asset) public view returns (uint256) {
-        uint256 price = IOracle(VAULT_DETAILS.ORACLE_CONTRACT).getPrice(_asset);
-        return (getUSDBalance() * 1000 / price) / 1000;
-    }
+    // function getBalanceIn(address _asset) public view returns (uint256) {
+    //     uint256 price = IOracle(VAULT_DETAILS.ORACLE_CONTRACT).getPrice(_asset);
+    //     return (getUSDBalance() * 1000 / price) / 1000;
+    // }
 
     function createLoan(address _collateral, address _loan_asset, uint256 _collateral_amount, uint256 _loan_amount, uint256 _repaymentDate) external nonReentrant returns (uint256 loanId) {
         require(IERC20(_collateral).balanceOf(address(msg.sender)) >= _collateral_amount, "Insufficient balance");
@@ -186,7 +186,7 @@ contract Vault is ERC1155, ReentrancyGuard {
         });
 
         _mint(msg.sender, loanId, 1, "");
-        emit loanCreated(_loans[loanId], msg.sender, loanId);
+        // emit loanCreated(_loans[loanId], msg.sender, loanId);
     }
 
     function repayLoan(uint32 _loanId) external {
@@ -204,18 +204,40 @@ contract Vault is ERC1155, ReentrancyGuard {
         _burn(msg.sender, _loanId, 1);
     }
 
-    function swap(address _from, address _to, uint256 _amount) public {
-        //write a couple of if conditions
+    //check if a liquidity addition or swap will create an imabalance
+    function checkBalanced(address _asset, uint256 _amount) public view returns (bool) {
+        uint256 currBalance = getUSDValue(_asset, IERC20(_asset).balanceOf(address(this)));
+        uint256 usdBalance = getUSDBalance();
+
+        if (usdBalance > 0){
+            if (((currBalance * 100) / usdBalance) > WHITELISTED_DETAILS[_asset].MAX_EXPOSURE){
+                return false;
+            }
+        }
+            
         
+        return true;
+    }
+
+    function swap(address _from, address _to, uint256 _amount) public {
+        require(IERC20(_from).balanceOf(address(msg.sender)) >= _amount, "Insufficient balance");
+        require(checkBalanced(_from, _amount), "Will cause imabalance");
+
+        uint256 collateral_worth = getUSDValue(_from, _amount);
+
+        uint256 oraclePrice = IOracle(VAULT_DETAILS.ORACLE_CONTRACT).getPrice(_to);
+        uint256 output_amt = (((collateral_worth * 10 ** 5) / oraclePrice)) / 10**5 ;
+
+        require(IERC20(_to).balanceOf(address(this)) >= output_amt, "Insufficient balance");
+
         IERC20(_from).transferFrom(msg.sender, address(this), _amount);
-        IERC20(_to).transfer(msg.sender, _amount);
-
-
+        IERC20(_to).transfer(msg.sender, output_amt);
     }
 
     function addLiquidity(uint256 _amount, address _asset)  external nonReentrant {
         require(WHITELISTED_DETAILS[_asset].lp_enabled == true, "Asset not whitelisted for liquidity provision");
         require(IERC20(_asset).balanceOf(address(msg.sender)) >= _amount, "Insufficient balance");
+        require(checkBalanced(_asset, _amount), "Will cause imabalance");
 
         uint256 shares = _amount;
 
@@ -228,7 +250,7 @@ contract Vault is ERC1155, ReentrancyGuard {
         
         _mint(msg.sender, LIQUIDITY_POSITION, shares, "");
 
-        emit LiquidityAdded(_asset, _amount, shares, msg.sender);
+        // emit LiquidityAdded(_asset, _amount, shares, msg.sender);
         totalSupply = totalSupply + shares;
     }
 
@@ -245,7 +267,7 @@ contract Vault is ERC1155, ReentrancyGuard {
         if (success){
             totalSupply = totalSupply - shares;
             _burn(msg.sender, LIQUIDITY_POSITION, shares);
-            emit LiquidtyRemoved(_asset, amount, shares, msg.sender);
+            // emit LiquidtyRemoved(_asset, amount, shares, msg.sender);
         }
     }
     

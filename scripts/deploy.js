@@ -75,18 +75,18 @@ async function deployContracts(testnet=true){
     if (testnet == true) {
         const ERC20 = await ethers.getContractFactory("ERC20");
 
-        usdc = await ERC20.deploy(signer.address, BigInt(100000) * BigInt(10**18));
+        usdc = await ERC20.deploy(signer.address, BigInt(200000) * BigInt(10**18));
         await usdc.deployed();  
         console.log("USDC Contract Deployed at " + usdc.address);
         pairs['USDC'] = usdc
 
         
-        weth = await ERC20.deploy(signer.address, BigInt(100) * BigInt(10**18));
+        weth = await ERC20.deploy(signer.address, BigInt(1) * BigInt(10**18));
         await weth.deployed();  
         console.log("WETH Contract Deployed at " + weth.address);
         pairs['WETH'] = weth
 
-        wbtc = await ERC20.deploy(signer.address, BigInt(10) * BigInt(10**18));
+        wbtc = await ERC20.deploy(signer.address, BigInt(3) * BigInt(10**17));
         await wbtc.deployed();  
         console.log("WBTC Contract Deployed at " + wbtc.address);
         pairs['WBTC'] = wbtc

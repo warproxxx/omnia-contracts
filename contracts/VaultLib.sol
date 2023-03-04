@@ -6,7 +6,6 @@ struct VaultDetails {
     address ORACLE_CONTRACT;
     address GMX_CONTRACT;
     uint32 MAX_LEVERAGE;
-
 }
 
 struct Whitelisted{
