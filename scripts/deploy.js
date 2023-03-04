@@ -54,7 +54,8 @@ function getGenericVaultParams(pairs) {
     return [{
         VAULT_NAME: "Omnia Vault",
         VAULT_DESCRIPTION: "The Default Vault Provides balance Loans", 
-        ORACLE_CONTRACT: '0x0000000000000000000000000000000000000000'
+        ORACLE_CONTRACT: '0x0000000000000000000000000000000000000000',
+        MAX_LEVERAGE: 500
     }, addys, whitelisted]
 
 }
@@ -69,17 +70,17 @@ async function deployContracts(testnet=true){
 
     if (testnet == true) {
         const ERC20 = await ethers.getContractFactory("ERC20");
-        weth = await ERC20.deploy(signer.address, BigInt(1600) * BigInt(10**18));
+        weth = await ERC20.deploy(signer.address, BigInt(100) * BigInt(10**18));
         await weth.deployed();  
         console.log("WETH Contract Deployed at " + weth.address);
         pairs['WETH'] = weth
 
-        wbtc = await ERC20.deploy(signer.address, BigInt(24000) * BigInt(10**18));
+        wbtc = await ERC20.deploy(signer.address, BigInt(10) * BigInt(10**18));
         await wbtc.deployed();  
         console.log("WBTC Contract Deployed at " + wbtc.address);
         pairs['WBTC'] = wbtc
 
-        usdc = await ERC20.deploy(signer.address, BigInt(1) * BigInt(10**18));
+        usdc = await ERC20.deploy(signer.address, BigInt(100000) * BigInt(10**18));
         await usdc.deployed();  
         console.log("USDC Contract Deployed at " + usdc.address);
         pairs['USDC'] = usdc
@@ -96,6 +97,11 @@ async function deployContracts(testnet=true){
     console.log("Oracle Contract Deployed at " + or.address);
     addresses['Oracle'] = or.address
     
+    const GMX = await ethers.getContractFactory("GMX");
+    gmx = await GMX.deploy(or.address);
+    await gmx.deployed(); 
+    console.log("GMX Contract Deployed at " + gmx.address);
+    addresses['GMX'] = or.address
 
     const Vault = await ethers.getContractFactory("Vault");
     vb = await Vault.deploy()
@@ -108,7 +114,7 @@ async function deployContracts(testnet=true){
     addresses['VM'] = vm.address
 
     let [_VAULT_DETAILS, _WHITELISTED_ASSETS, _WHITELISTED_DETAILS] = getGenericVaultParams(pairs)
-
+    _VAULT_DETAILS['GMX_CONTRACT'] = gmx.address
     await vm.createVault(_VAULT_DETAILS, _WHITELISTED_ASSETS, _WHITELISTED_DETAILS, vb.address)
 
     console.log("Vault created")

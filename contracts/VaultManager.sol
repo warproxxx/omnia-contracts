@@ -26,6 +26,8 @@ contract VaultManager {
 
 
     function createVault(VaultDetails memory _VAULT_DETAILS, address[] memory _WHITELISTED_ASSETS,  Whitelisted[] memory _WHITELISTED_DETAILS, address _VAULT) public returns (address vault) {
+        console.log("Creating vault");
+        
         if (validVault[_VAULT] == true){
             vault = Clones.clone(VAULT);
             _VAULT_DETAILS.ORACLE_CONTRACT = ORACLE;

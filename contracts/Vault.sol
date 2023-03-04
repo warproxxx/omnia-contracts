@@ -64,7 +64,7 @@ contract Vault is ERC1155, ReentrancyGuard {
         }
 
         //integrate hedges too
-            
+        //pnl of open hedges
 
          return usd_balance;
     }
@@ -78,11 +78,11 @@ contract Vault is ERC1155, ReentrancyGuard {
                 uint256 collateral_value = getUSDValue(curr_loan.collateral, curr_loan.principal);
                 uint256 loan_value = getUSDValue(curr_loan.loan_asset, curr_loan.repayment);
 
-                if (loan_value < collateral_value && !curr_loan.isHedged){
+                if (loan_value < collateral_value && curr_loan.hedgeId == 0){
                     //open short position
                 }
 
-                if (curr_loan.isHedged && loan_value > collateral_value){
+                if (curr_loan.hedgeId != 0 && loan_value > collateral_value){
                     //close short position
                 }
             }
@@ -130,7 +130,7 @@ contract Vault is ERC1155, ReentrancyGuard {
             principal: _loan_amount,
             repayment: repayment,
             lockedAmount: _collateral_amount,
-            isHedged: false
+            hedgeId: 0
         });
 
         _mint(msg.sender, loanId, 1, "");

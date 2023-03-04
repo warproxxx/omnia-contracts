@@ -30,31 +30,31 @@ describe('Contract tests', () => {
 
     it("Add and remove liquidity", async function () {
         amt = BigInt(10**18)
-        await pairs['WETH'].approve(vault.address, ethers.constants.MaxUint256);
-        await vault.addLiquidity(amt, pairs['WETH'].address);
+        await pairs['USDC'].approve(vault.address, ethers.constants.MaxUint256);
+        await vault.addLiquidity(amt, pairs['USDC'].address);
         
         expect(BigInt(await vault.balanceOf(owner.address, 0))).to.equal(amt);
-        expect(BigInt(await pairs['WETH'].balanceOf(vault.address)) >= amt).to.equal(true);
+        expect(BigInt(await pairs['USDC'].balanceOf(vault.address)) >= amt).to.equal(true);
 
 
         expect(BigInt(await vault.getUSDBalance()) / BigInt(10**18) >= BigInt(1500))  
-        await vault.withdrawLiquidity(amt, pairs['WETH'].address);
+        await vault.withdrawLiquidity(amt, pairs['USDC'].address);
 
-        await vault.addLiquidity(amt, pairs['WETH'].address);
+        await vault.addLiquidity(amt, pairs['USDC'].address);
     })
 
     it("Take and Repay Loan", async function () {
         let currDate = Math.floor((new Date()).getTime() / 1000)
         let repaymentDate = currDate + (30 * 86400)
 
-        await vault.createLoan(pairs['WETH'].address, pairs['WETH'].address, BigInt(2) * BigInt(10**18) , BigInt(10**18), repaymentDate)
+        await vault.createLoan(pairs['USDC'].address, pairs['USDC'].address, BigInt(2) * BigInt(10**18) , BigInt(10**18), repaymentDate)
 
         let loanDetails = await vault._loans(1)
 
         expect((loanDetails.repayment / 10**18 ).toFixed(3)).to.equal('1.041');
         expect((loanDetails.principal / 10**18 ).toFixed(3)).to.equal('1.000');
 
-        await pairs['WETH'].approve(vault.address, ethers.constants.MaxUint256);
+        await pairs['USDC'].approve(vault.address, ethers.constants.MaxUint256);
         await vault.repayLoan(1)
     })
 

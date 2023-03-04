@@ -4,6 +4,7 @@ struct VaultDetails {
     string VAULT_NAME;
     string VAULT_DESCRIPTION;
     address ORACLE_CONTRACT;
+    address GMX_CONTRACT;
     uint32 MAX_LEVERAGE;
 }
 
@@ -26,4 +27,5 @@ struct Loan {
     uint256 principal;
     uint256 repayment;    
     uint256 lockedAmount;
+    uint256 hedgeId;
 }
