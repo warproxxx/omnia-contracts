@@ -2,6 +2,7 @@ pragma solidity ^0.8.0;
 import { IOracle } from "./interfaces/IOracle.sol";
 import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { GMXPosition } from "./VaultLib.sol";
 
 /**
  * @dev Interface of the ERC20 standard as defined in the EIP.

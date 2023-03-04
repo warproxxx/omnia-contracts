@@ -7,7 +7,7 @@ import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 import { IOracle } from "./interfaces/IOracle.sol";
 import { IGMX } from "./interfaces/IGMX.sol";
 
-import { VaultDetails, Whitelisted, Loan } from "./VaultLib.sol";
+import { VaultDetails, Whitelisted, Loan, GMXPosition } from "./VaultLib.sol";
 
 import "hardhat/console.sol";
 
@@ -56,10 +56,28 @@ contract Vault is ERC1155, ReentrancyGuard {
         uint256 usd_balance = 0;
 
         for (uint i=0; i < WHITELISTED_ASSETS.length; i++ ) {
+            //first check basic balance
             uint256 curr_balance = getUSDValue(WHITELISTED_ASSETS[i], IERC20(WHITELISTED_ASSETS[i]).balanceOf(address(this)));
             usd_balance = usd_balance + curr_balance;
+
+            //now for hedges
+            GMXPosition memory pos = IGMX(VAULT_DETAILS.GMX_CONTRACT).getPosition(msg.sender, MAIN_ASSET, WHITELISTED_ASSETS[i], false);
+
+            if (pos.size > 0){
+                uint256 posSize  = (pos.size/10**3) * (pos.averagePrice / 10**15);
+                usd_balance = usd_balance + posSize;
+
+                (bool hasProfit, uint256 delta) = IGMX(VAULT_DETAILS.GMX_CONTRACT).getDelta(WHITELISTED_ASSETS[i], pos.size, pos.averagePrice, false, pos.lastIncreasedTime);
+                
+                if (hasProfit){
+                    usd_balance = usd_balance + delta;
+                } else {
+                    usd_balance = usd_balance - delta;
+                }
+            }
         }
 
+        //now check active loans
         for (uint i=1; i <= _nextId; i++ ) {
             Loan memory curr_loan = _loans[i];
 
@@ -69,9 +87,9 @@ contract Vault is ERC1155, ReentrancyGuard {
                 usd_balance = usd_balance + ((getUSDValue(curr_loan.loan_asset, curr_loan.repayment) * duration_done) / 10000);
             }
         }
+        
 
-        //integrate hedges too
-        //pnl of open hedges
+        
 
          return usd_balance;
     }
