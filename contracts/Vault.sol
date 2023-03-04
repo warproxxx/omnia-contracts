@@ -104,10 +104,6 @@ contract Vault is ERC1155, ReentrancyGuard {
                 uint256 collateral_value = getUSDValue(curr_loan.collateral, curr_loan.lockedAmount);
                 uint256 loan_value = getUSDValue(curr_loan.loan_asset, curr_loan.repayment);
 
-                console.log(collateral_value);
-                console.log(loan_value);
-                console.log("XX");
-
                 if (collateral_value < loan_value && curr_loan.hedgeId == 0){
                     //open short position
                     uint256 collateralSize =  loan_value * 2;
@@ -121,7 +117,6 @@ contract Vault is ERC1155, ReentrancyGuard {
                     _loans[i].collateralSize = collateralSize;
                     _loans[i].hedgeSize = loan_value;
 
-                    console.log("Opening a short");
                 }
 
 
@@ -131,8 +126,6 @@ contract Vault is ERC1155, ReentrancyGuard {
                     _loans[i].hedgeId = 0;
                     _loans[i].collateralSize = 0;
                     _loans[i].hedgeSize = 0;
-                    
-                    console.log("Closing a short");
                 }
             }
         }
@@ -209,6 +202,15 @@ contract Vault is ERC1155, ReentrancyGuard {
         delete _loans[_loanId];
 
         _burn(msg.sender, _loanId, 1);
+    }
+
+    function swap(address _from, address _to, uint256 _amount) public {
+        //write a couple of if conditions
+        
+        IERC20(_from).transferFrom(msg.sender, address(this), _amount);
+        IERC20(_to).transfer(msg.sender, _amount);
+
+
     }
 
     function addLiquidity(uint256 _amount, address _asset)  external nonReentrant {
