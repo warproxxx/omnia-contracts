@@ -28,6 +28,7 @@ function getGenericVaultParams(pairs) {
             params['intercept'] = 400
             params['MAX_EXPOSURE'] = 5
             params['HEDGE_AT'] = 2
+            params['MAX_DELTA_DIVERGENCE'] = 1
             params['HEDGE_PERCENTAGE'] = 100
 
         } else if (key == 'WBTC') {
@@ -39,6 +40,7 @@ function getGenericVaultParams(pairs) {
             params['intercept'] = 400
             params['MAX_EXPOSURE'] = 5
             params['HEDGE_AT'] = 2
+            params['MAX_DELTA_DIVERGENCE'] = 1
             params['HEDGE_PERCENTAGE'] = 100
 
         } else if (key == 'USDC') {
@@ -50,10 +52,12 @@ function getGenericVaultParams(pairs) {
             params['intercept'] = 400
             params['MAX_EXPOSURE'] = 100
             params['HEDGE_AT'] = 500 //ie never hedge
+            params['MAX_DELTA_DIVERGENCE'] = 2
             params['HEDGE_PERCENTAGE'] = 0
         }
 
         params['lp_enabled'] = true;
+        params['collateral_size'] = true;
 
         whitelisted.push(params)
 

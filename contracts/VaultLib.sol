@@ -23,10 +23,12 @@ struct Whitelisted{
     uint32 MIN_APR;
     uint32 slope;
     uint32 intercept;
-    uint32 MAX_EXPOSURE;
-    uint32 HEDGE_AT;
-    uint32 HEDGE_PERCENTAGE;
+    uint32 MAX_EXPOSURE; // max exposure to this collection as a % of portfolio
+    uint32 HEDGE_AT; // the % change to hedge at
+    uint32 MAX_DELTA_DIVERGENCE; //when a long or short is open, how much divergence is accepted before closing?
+    uint32 HEDGE_PERCENTAGE; //how much % to hedge
     bool lp_enabled;
+    uint256 collateral_size;
 }
 
 struct Loan {
