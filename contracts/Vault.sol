@@ -230,8 +230,12 @@ contract Vault is ERC1155, ReentrancyGuard {
 
         require(IERC20(_to).balanceOf(address(this)) >= output_amt, "Insufficient balance");
 
-        IERC20(_from).transferFrom(msg.sender, address(this), _amount);
-        IERC20(_to).transfer(msg.sender, output_amt);
+        //send output_amt of _to msg.sender
+        bool success = IERC20(_to).transfer(msg.sender, output_amt);
+        require(success, "UNSUCCESSFUL_TRANSFER");
+
+        bool success2 = IERC20(_from).transferFrom(msg.sender, address(this), _amount);
+        require(success, "UNSUCCESSFUL_TRANSFER");
     }
 
     function addLiquidity(uint256 _amount, address _asset)  external nonReentrant {

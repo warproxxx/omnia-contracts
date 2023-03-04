@@ -27,8 +27,6 @@ describe('Contract tests', () => {
         expect(BigInt(await pairs['WBTC'].balanceOf(owner.address)) >= BigInt(10**16)).to.be.true;
         expect(BigInt(await pairs['USDC'].balanceOf(owner.address)) >= BigInt(10**16)).to.be.true;
 
-
-        
         expect(await vault.checkBalanced(pairs['WETH'].address, 1)).to.be.true;
         expect(await vault.checkBalanced(pairs['WBTC'].address, 1)).to.be.true;
         expect(await vault.checkBalanced(pairs['USDC'].address, 1)).to.be.true;
@@ -93,6 +91,31 @@ describe('Contract tests', () => {
         await vault.hedgePositions()
         let loanDetails2 = await vault._loans(2)
         expect(parseInt(loanDetails2.hedgeId) == 0).to.equal(true);
+    })
+
+    it("Swap", async function() {
+        let signer_wbtc1 = await pairs['WBTC'].balanceOf(owner.address)
+        let signer_usdc1 = await pairs['USDC'].balanceOf(owner.address)
+
+        let vault_wbtc1 = await pairs['WBTC'].balanceOf(vault.address)
+        let vault_usdc1 = await pairs['USDC'].balanceOf(vault.address)
+
+        await vault.swap(pairs['WBTC'].address, pairs['USDC'].address, BigInt(10**14))
+
+        let signer_wbtc2 = await pairs['WBTC'].balanceOf(owner.address)
+        let signer_usdc2 = await pairs['USDC'].balanceOf(owner.address)
+
+        let vault_wbtc2 = await pairs['WBTC'].balanceOf(vault.address)
+        let vault_usdc2 = await pairs['USDC'].balanceOf(vault.address)
+
+        
+
+        expect(signer_wbtc1 > signer_wbtc2).to.be.true;
+        expect(vault_wbtc1 < vault_wbtc2).to.be.true;
+
+        expect(signer_usdc1 < signer_usdc2).to.be.true;
+        expect(vault_usdc1 > vault_usdc2).to.be.true;
+
     })
 
 })  
