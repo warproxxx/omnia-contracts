@@ -7,18 +7,18 @@ import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 import { IOracle } from "./interfaces/IOracle.sol";
 import { IGMX } from "./interfaces/IGMX.sol";
 
-import { VaultDetails, Whitelisted, Loan, GMXPosition } from "./VaultLib.sol";
+import { VaultDetails, Whitelisted, Loan, GMXPosition, Delta } from "./VaultLib.sol";
 
 import "hardhat/console.sol";
 
 contract Vault is ERC1155, ReentrancyGuard {
-
-    VaultDetails private VAULT_DETAILS;
+    VaultDetails public VAULT_DETAILS;
     address[] public WHITELISTED_ASSETS;
-    address public MAIN_ASSET;
-    mapping(address => Whitelisted) public WHITELISTED_DETAILS;
+    address private MAIN_ASSET;
 
+    mapping(address => Whitelisted) public WHITELISTED_DETAILS;
     mapping(uint256 => Loan) public _loans;
+    mapping(address => uint256) private idx;
 
     uint32 private constant LIQUIDITY_POSITION = 0;
     uint256 private _nextId = 1;
@@ -37,7 +37,7 @@ contract Vault is ERC1155, ReentrancyGuard {
         uint32 max_exposure = 0;
         for (uint i=0; i< _WHITELISTED_ASSETS.length; i++) {
             WHITELISTED_DETAILS[_WHITELISTED_DETAILS[i].collection] = _WHITELISTED_DETAILS[i];
-
+            idx[_WHITELISTED_DETAILS[i].collection] = i;
 
             if (_WHITELISTED_DETAILS[i].MAX_EXPOSURE > max_exposure){
                 MAIN_ASSET = _WHITELISTED_ASSETS[i];
@@ -94,7 +94,10 @@ contract Vault is ERC1155, ReentrancyGuard {
          return usd_balance;
     }
 
-    function hedgePositions() public {
+    function getDeltas() public view returns (Delta[] memory deltas) {
+        Delta[] memory deltas = new Delta[](WHITELISTED_ASSETS.length);
+
+
         for (uint i=1; i <= _nextId; i++ ) {
             
             Loan memory curr_loan = _loans[i];
@@ -104,31 +107,48 @@ contract Vault is ERC1155, ReentrancyGuard {
                 uint256 collateral_value = getUSDValue(curr_loan.collateral, curr_loan.lockedAmount);
                 uint256 loan_value = getUSDValue(curr_loan.loan_asset, curr_loan.repayment);
 
-                if (collateral_value < loan_value && curr_loan.hedgeId == 0){
-                    //open short position
-                    uint256 collateralSize =  loan_value * 2;
-                    IERC20(MAIN_ASSET).approve(VAULT_DETAILS.GMX_CONTRACT, collateralSize);
-                    IERC20(MAIN_ASSET).transfer(VAULT_DETAILS.GMX_CONTRACT, collateralSize);
-
-                    IGMX(VAULT_DETAILS.GMX_CONTRACT).increasePosition(msg.sender, MAIN_ASSET, curr_loan.loan_asset, loan_value, false);
-                    uint256 hedgeId = uint256(keccak256(abi.encodePacked(msg.sender, MAIN_ASSET, curr_loan.loan_asset, false)));
-
-                    _loans[i].hedgeId = hedgeId;
-                    _loans[i].collateralSize = collateralSize;
-                    _loans[i].hedgeSize = loan_value;
-
-                }
-
-
-                if (curr_loan.hedgeId != 0 && collateral_value > loan_value){
-                    //close short position
-                    IGMX(VAULT_DETAILS.GMX_CONTRACT).decreasePosition(msg.sender, MAIN_ASSET, curr_loan.loan_asset, curr_loan.collateralSize,  curr_loan.hedgeSize, false, msg.sender);
-                    _loans[i].hedgeId = 0;
-                    _loans[i].collateralSize = 0;
-                    _loans[i].hedgeSize = 0;
+                if (collateral_value < ((loan_value * 101) / 100)){
+                    deltas[idx[curr_loan.loan_asset]].delta = deltas[idx[curr_loan.loan_asset]].delta + loan_value;
+                    deltas[idx[curr_loan.loan_asset]].direction = false;
                 }
             }
         }
+
+        for (uint i=0; i < WHITELISTED_ASSETS.length; i++ ) {
+            if (WHITELISTED_ASSETS[i] != MAIN_ASSET){
+                uint256 curr_balance = getUSDValue(WHITELISTED_ASSETS[i], IERC20(WHITELISTED_ASSETS[i]).balanceOf(address(this)));
+            }
+            
+        }
+
+
+        return deltas;
+
+
+
+    }
+
+    function hedgePositions() external {
+        //need to find delta here.
+        //  IGMX(VAULT_DETAILS.GMX_CONTRACT).increasePosition(msg.sender, MAIN_ASSET, curr_loan.loan_asset, loan_value, false);
+        // uint256 hedgeId = uint256(keccak256(abi.encodePacked(msg.sender, MAIN_ASSET, curr_loan.loan_asset, false)));
+
+        // _loans[i].hedgeId = hedgeId;
+        // _loans[i].collateralSize = collateralSize;
+        // _loans[i].hedgeSize = loan_value;
+
+        // //open short position
+        // uint256 collateralSize =  loan_value * 2;
+        // IERC20(MAIN_ASSET).approve(VAULT_DETAILS.GMX_CONTRACT, collateralSize);
+        // IERC20(MAIN_ASSET).transfer(VAULT_DETAILS.GMX_CONTRACT, collateralSize);
+
+        // //close short position
+        // IGMX(VAULT_DETAILS.GMX_CONTRACT).decreasePosition(msg.sender, MAIN_ASSET, curr_loan.loan_asset, curr_loan.collateralSize,  curr_loan.hedgeSize, false, msg.sender);
+        // _loans[i].hedgeId = 0;
+        // _loans[i].collateralSize = 0;
+        // _loans[i].hedgeSize = 0;
+
+
     }
 
     // function getBalanceIn(address _asset) public view returns (uint256) {
@@ -137,8 +157,8 @@ contract Vault is ERC1155, ReentrancyGuard {
     // }
 
     function createLoan(address _collateral, address _loan_asset, uint256 _collateral_amount, uint256 _loan_amount, uint256 _repaymentDate) external nonReentrant returns (uint256 loanId) {
-        require(IERC20(_collateral).balanceOf(address(msg.sender)) >= _collateral_amount, "Insufficient balance");
-        require(IERC20(_loan_asset).balanceOf(address(this)) >= _loan_amount, "Insufficient balance");
+        // require(IERC20(_collateral).balanceOf(address(msg.sender)) >= _collateral_amount, "Insufficient balance");
+        // require(IERC20(_loan_asset).balanceOf(address(this)) >= _loan_amount, "Insufficient balance");
 
         Whitelisted memory details = WHITELISTED_DETAILS[_collateral];
 
@@ -159,17 +179,19 @@ contract Vault is ERC1155, ReentrancyGuard {
 
         apr = Math.min(apr, details.MAX_APR);
 
-        
-        require(ltv < 950, "LTV Must be smaller than 95% for loans");
+        // LTV must be smaller than a global        
+        require(ltv < 950, "5");
 
         uint256 repayment = _loan_amount + ((_loan_amount * apr * (_repaymentDate - block.timestamp))  / 31536000000);
 
 
         bool success = IERC20(_collateral).transferFrom(msg.sender, address(this), _collateral_amount);
-        require(success, "UNSUCCESSFUL_TRANSFER");
+        // not enough balance or not approved
+        require(success, "1");
 
         bool success2 = IERC20(_loan_asset).transfer(msg.sender, _loan_amount);
-        require(success2, "UNSUCCESSFUL_TRANSFER");
+        // not enough balance or not approved
+        require(success2, "1");
 
         loanId = ++_nextId;
         _loans[loanId] = Loan({
@@ -191,11 +213,11 @@ contract Vault is ERC1155, ReentrancyGuard {
 
     function repayLoan(uint32 _loanId) external {
         Loan storage curr_loan = _loans[_loanId];
-        require(curr_loan.repaymentDate >= block.timestamp, "LOAN_EXPIRED");
+        require(curr_loan.repaymentDate >= block.timestamp, "3");
         
         bool success = IERC20(curr_loan.loan_asset).transferFrom(msg.sender, address(this), curr_loan.repayment);  
-
-        require(success, "UNSUCCESSFUL_TRANSFER");
+        // not enough balance or not approved
+        require(success, "1");
 
         IERC20(curr_loan.collateral).transfer(msg.sender, curr_loan.lockedAmount);  
 
@@ -219,29 +241,39 @@ contract Vault is ERC1155, ReentrancyGuard {
         return true;
     }
 
-    function swap(address _from, address _to, uint256 _amount) public {
-        require(IERC20(_from).balanceOf(address(msg.sender)) >= _amount, "Insufficient balance");
-        require(checkBalanced(_from, _amount), "Will cause imabalance");
+    function swap(address _from, address _to, uint256 _amount) external {
+        // commenting out for hackathon as its moot to check it as it will fail either way
+        // require(IERC20(_from).balanceOf(address(msg.sender)) >= _amount, "Insufficient balance");
+        require(checkBalanced(_from, _amount), "4");
 
         uint256 collateral_worth = getUSDValue(_from, _amount);
 
         uint256 oraclePrice = IOracle(VAULT_DETAILS.ORACLE_CONTRACT).getPrice(_to);
         uint256 output_amt = (((collateral_worth * 10 ** 5) / oraclePrice)) / 10**5 ;
 
-        require(IERC20(_to).balanceOf(address(this)) >= output_amt, "Insufficient balance");
+        // commenting out for hackathon as its moot to check it as it will fail either way
+        // require(IERC20(_to).balanceOf(address(this)) >= output_amt, "Insufficient balance");
 
         //send output_amt of _to msg.sender
         bool success = IERC20(_to).transfer(msg.sender, output_amt);
-        require(success, "UNSUCCESSFUL_TRANSFER");
+        // not enough balance or not approved
+        require(success, "1");
 
         bool success2 = IERC20(_from).transferFrom(msg.sender, address(this), _amount);
-        require(success, "UNSUCCESSFUL_TRANSFER");
+        // not enough balance or not approved
+        require(success, "1");
     }
 
     function addLiquidity(uint256 _amount, address _asset)  external nonReentrant {
-        require(WHITELISTED_DETAILS[_asset].lp_enabled == true, "Asset not whitelisted for liquidity provision");
-        require(IERC20(_asset).balanceOf(address(msg.sender)) >= _amount, "Insufficient balance");
-        require(checkBalanced(_asset, _amount), "Will cause imabalance");
+
+        //Not in whitelist
+        require(WHITELISTED_DETAILS[_asset].lp_enabled == true, "2");
+
+        // commenting out for hackathon as its moot to check it as it will fail either way
+        // require(IERC20(_asset).balanceOf(address(msg.sender)) >= _amount, "Insufficient balance");
+
+        //addition will cause imbalance
+        require(checkBalanced(_asset, _amount), "4");
 
         uint256 shares = _amount;
 

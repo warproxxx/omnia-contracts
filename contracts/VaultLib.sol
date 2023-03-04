@@ -8,6 +8,13 @@ struct VaultDetails {
     uint32 MAX_LEVERAGE;
 }
 
+struct Delta {
+    address collection;
+    bool direction;
+    uint256 delta;
+}
+
+
 struct Whitelisted{
     address collection;
     uint32 MAX_LTV;
@@ -17,6 +24,9 @@ struct Whitelisted{
     uint32 slope;
     uint32 intercept;
     uint32 MAX_EXPOSURE;
+    uint32 HEDGE_AT;
+    uint32 HEDGE_PERCENTAGE;
+
     bool lp_enabled;
 }
 
