@@ -52,13 +52,18 @@ contract Vault is ERC1155, ReentrancyGuard {
         return (_amount/10**3) * (oraclePrice / 10**15);
     }
 
-    function getUSDBalance() public view returns (uint256){
+    function getUSDBalanceAndDelta() public view returns (uint256, Delta[] memory deltas){
+        Delta[] memory deltas = new Delta[](WHITELISTED_ASSETS.length);
+
         uint256 usd_balance = 0;
 
         for (uint i=0; i < WHITELISTED_ASSETS.length; i++ ) {
             //first check basic balance
             uint256 curr_balance = getUSDValue(WHITELISTED_ASSETS[i], IERC20(WHITELISTED_ASSETS[i]).balanceOf(address(this)));
             usd_balance = usd_balance + curr_balance;
+
+            //for delta
+            //use curr_balance above
 
             //now for hedges
             GMXPosition memory pos = IGMX(VAULT_DETAILS.GMX_CONTRACT).getPosition(msg.sender, MAIN_ASSET, WHITELISTED_ASSETS[i], false);
@@ -75,6 +80,9 @@ contract Vault is ERC1155, ReentrancyGuard {
                     usd_balance = usd_balance - delta;
                 }
             }
+
+            
+
         }
 
         //now check active loans
@@ -82,28 +90,12 @@ contract Vault is ERC1155, ReentrancyGuard {
             Loan memory curr_loan = _loans[i];
 
             if (curr_loan.timestamp != 0){
+                //from usd
                 usd_balance = usd_balance - getUSDValue(curr_loan.collateral, curr_loan.principal);
                 uint256 duration_done = (block.timestamp - curr_loan.timestamp) * 10000 / (curr_loan.repaymentDate - curr_loan.timestamp);
                 usd_balance = usd_balance + ((getUSDValue(curr_loan.loan_asset, curr_loan.repayment) * duration_done) / 10000);
-            }
-        }
-        
 
-        
-
-         return usd_balance;
-    }
-
-    function getDeltas() public view returns (Delta[] memory deltas) {
-        Delta[] memory deltas = new Delta[](WHITELISTED_ASSETS.length);
-
-
-        for (uint i=1; i <= _nextId; i++ ) {
-            
-            Loan memory curr_loan = _loans[i];
-
-            if (curr_loan.timestamp != 0){
-
+                //from delta
                 uint256 collateral_value = getUSDValue(curr_loan.collateral, curr_loan.lockedAmount);
                 uint256 loan_value = getUSDValue(curr_loan.loan_asset, curr_loan.repayment);
 
@@ -113,20 +105,13 @@ contract Vault is ERC1155, ReentrancyGuard {
                 }
             }
         }
+        
 
-        for (uint i=0; i < WHITELISTED_ASSETS.length; i++ ) {
-            if (WHITELISTED_ASSETS[i] != MAIN_ASSET){
-                uint256 curr_balance = getUSDValue(WHITELISTED_ASSETS[i], IERC20(WHITELISTED_ASSETS[i]).balanceOf(address(this)));
-            }
-            
-        }
+        
 
-
-        return deltas;
-
-
-
+         return (usd_balance, deltas);
     }
+
 
     function hedgePositions() external {
         //need to find delta here.
@@ -229,7 +214,7 @@ contract Vault is ERC1155, ReentrancyGuard {
     //check if a liquidity addition or swap will create an imabalance
     function checkBalanced(address _asset, uint256 _amount) public view returns (bool) {
         uint256 currBalance = getUSDValue(_asset, IERC20(_asset).balanceOf(address(this)));
-        uint256 usdBalance = getUSDBalance();
+        (uint256 usdBalance, )  = getUSDBalanceAndDelta();
 
         if (usdBalance > 0){
             if (((currBalance * 100) / usdBalance) > WHITELISTED_DETAILS[_asset].MAX_EXPOSURE){
@@ -276,9 +261,11 @@ contract Vault is ERC1155, ReentrancyGuard {
         require(checkBalanced(_asset, _amount), "4");
 
         uint256 shares = _amount;
+        (uint256 usdBalance, )  = getUSDBalanceAndDelta();
+
 
         if (totalSupply > 0) {            
-            shares =  _amount * (totalSupply / getUSDBalance());
+            shares =  _amount * (totalSupply / usdBalance);
         }
 
         bool success = IERC20(_asset).transferFrom(msg.sender, address(this), _amount);        
@@ -295,7 +282,9 @@ contract Vault is ERC1155, ReentrancyGuard {
 
         if (balance < shares) {revert();}
 
-        uint256 amount = shares * getUSDBalance() / totalSupply;
+        (uint256 usdBalance, )  = getUSDBalanceAndDelta();
+
+        uint256 amount = shares * usdBalance / totalSupply;
         if(IERC20(_asset).balanceOf(address(this)) < amount) {revert();}
 
         bool success = IERC20(_asset).transfer(msg.sender, amount);
