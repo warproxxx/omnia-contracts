@@ -1,0 +1,195 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_VAULT",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_ORACLE",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_ADMIN",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_vault",
+        "type": "address"
+      }
+    ],
+    "name": "addValidVault",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "VAULT_NAME",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "VAULT_DESCRIPTION",
+            "type": "string"
+          },
+          {
+            "internalType": "address",
+            "name": "ORACLE_CONTRACT",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "GMX_CONTRACT",
+            "type": "address"
+          },
+          {
+            "internalType": "uint32",
+            "name": "MAX_LEVERAGE",
+            "type": "uint32"
+          }
+        ],
+        "internalType": "struct VaultDetails",
+        "name": "_VAULT_DETAILS",
+        "type": "tuple"
+      },
+      {
+        "internalType": "address[]",
+        "name": "_WHITELISTED_ASSETS",
+        "type": "address[]"
+      },
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "collection",
+            "type": "address"
+          },
+          {
+            "internalType": "uint32",
+            "name": "MAX_LTV",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint32",
+            "name": "MAX_DURATION",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint32",
+            "name": "MAX_APR",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint32",
+            "name": "MIN_APR",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint32",
+            "name": "slope",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint32",
+            "name": "intercept",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint32",
+            "name": "MAX_EXPOSURE",
+            "type": "uint32"
+          },
+          {
+            "internalType": "bool",
+            "name": "lp_enabled",
+            "type": "bool"
+          }
+        ],
+        "internalType": "struct Whitelisted[]",
+        "name": "_WHITELISTED_DETAILS",
+        "type": "tuple[]"
+      },
+      {
+        "internalType": "address",
+        "name": "_VAULT",
+        "type": "address"
+      }
+    ],
+    "name": "createVault",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "vault",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getVaults",
+    "outputs": [
+      {
+        "internalType": "address[]",
+        "name": "",
+        "type": "address[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "validVault",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "vaults",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]

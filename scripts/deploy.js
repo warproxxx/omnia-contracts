@@ -178,8 +178,17 @@ async function deploy(){
 
     ABI_STRING = ABI_STRING + "let VAULT_MANAGER='" + vm.address + "'\n"
     ABI_STRING = ABI_STRING + "let ORACLE='" + or.address + "'\n\n"
+    
+    let pair_dict = {}
 
-    export_string = export_string + "ORACLE,VAULT_MANAGER}"
+    for (const [key, value] of Object.entries(pairs)) {
+        pair_dict[key] = value.address
+    }
+
+    ABI_STRING = ABI_STRING + "let PAIRS=" + JSON.stringify(pair_dict) + "\n\n"
+
+
+    export_string = export_string + "ORACLE,VAULT_MANAGER,PAIRS}"
 
     ABI_STRING = ABI_STRING + export_string
 
@@ -195,7 +204,7 @@ async function deploy(){
 
 
 if (require.main === module) {
-    deployContracts()
+    deploy()
 }
 
 

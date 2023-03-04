@@ -1,0 +1,99 @@
+[
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "VAULT_NAME",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "VAULT_DESCRIPTION",
+            "type": "string"
+          },
+          {
+            "internalType": "address",
+            "name": "ORACLE_CONTRACT",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "GMX_CONTRACT",
+            "type": "address"
+          },
+          {
+            "internalType": "uint32",
+            "name": "MAX_LEVERAGE",
+            "type": "uint32"
+          }
+        ],
+        "internalType": "struct VaultDetails",
+        "name": "_VAULT_DETAILS",
+        "type": "tuple"
+      },
+      {
+        "internalType": "address[]",
+        "name": "_WHITELISTED_ASSETS",
+        "type": "address[]"
+      },
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "collection",
+            "type": "address"
+          },
+          {
+            "internalType": "uint32",
+            "name": "MAX_LTV",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint32",
+            "name": "MAX_DURATION",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint32",
+            "name": "MAX_APR",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint32",
+            "name": "MIN_APR",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint32",
+            "name": "slope",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint32",
+            "name": "intercept",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint32",
+            "name": "MAX_EXPOSURE",
+            "type": "uint32"
+          },
+          {
+            "internalType": "bool",
+            "name": "lp_enabled",
+            "type": "bool"
+          }
+        ],
+        "internalType": "struct Whitelisted[]",
+        "name": "_WHITELISTED_DETAILS",
+        "type": "tuple[]"
+      }
+    ],
+    "name": "initialize",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+]
