@@ -15,6 +15,7 @@ contract Vault is ERC1155, ReentrancyGuard {
 
     VaultDetails private VAULT_DETAILS;
     address[] public WHITELISTED_ASSETS;
+    address public MAIN_ASSET;
     mapping(address => Whitelisted) private WHITELISTED_DETAILS;
 
     mapping(uint256 => Loan) public _loans;
@@ -33,10 +34,16 @@ contract Vault is ERC1155, ReentrancyGuard {
         WHITELISTED_ASSETS = _WHITELISTED_ASSETS;
 
         uint length = _WHITELISTED_ASSETS.length;
-        
-        for (uint i; i< length; ) {
+        uint32 max_exposure = 0;
+        for (uint i=0; i< _WHITELISTED_ASSETS.length; i++) {
             WHITELISTED_DETAILS[_WHITELISTED_DETAILS[i].collection] = _WHITELISTED_DETAILS[i];
-            unchecked { ++i; }
+
+
+            if (_WHITELISTED_DETAILS[i].MAX_EXPOSURE > max_exposure){
+                MAIN_ASSET = _WHITELISTED_ASSETS[i];
+                max_exposure = _WHITELISTED_DETAILS[i].MAX_EXPOSURE;
+            }
+
         }
     }
 
@@ -71,19 +78,43 @@ contract Vault is ERC1155, ReentrancyGuard {
 
     function hedgePositions() public {
         for (uint i=1; i <= _nextId; i++ ) {
+            
             Loan memory curr_loan = _loans[i];
 
             if (curr_loan.timestamp != 0){
 
-                uint256 collateral_value = getUSDValue(curr_loan.collateral, curr_loan.principal);
+                uint256 collateral_value = getUSDValue(curr_loan.collateral, curr_loan.lockedAmount);
                 uint256 loan_value = getUSDValue(curr_loan.loan_asset, curr_loan.repayment);
 
-                if (loan_value < collateral_value && curr_loan.hedgeId == 0){
+                console.log(collateral_value);
+                console.log(loan_value);
+                console.log("XX");
+
+                if (collateral_value < loan_value && curr_loan.hedgeId == 0){
                     //open short position
+                    uint256 collateralSize =  loan_value * 2;
+                    IERC20(MAIN_ASSET).approve(VAULT_DETAILS.GMX_CONTRACT, collateralSize);
+                    IERC20(MAIN_ASSET).transfer(VAULT_DETAILS.GMX_CONTRACT, collateralSize);
+
+                    IGMX(VAULT_DETAILS.GMX_CONTRACT).increasePosition(msg.sender, MAIN_ASSET, curr_loan.loan_asset, loan_value, false);
+                    uint256 hedgeId = uint256(keccak256(abi.encodePacked(msg.sender, MAIN_ASSET, curr_loan.loan_asset, false)));
+
+                    _loans[i].hedgeId = hedgeId;
+                    _loans[i].collateralSize = collateralSize;
+                    _loans[i].hedgeSize = loan_value;
+
+                    console.log("Opening a short");
                 }
 
-                if (curr_loan.hedgeId != 0 && loan_value > collateral_value){
+
+                if (curr_loan.hedgeId != 0 && collateral_value > loan_value){
                     //close short position
+                    IGMX(VAULT_DETAILS.GMX_CONTRACT).decreasePosition(msg.sender, MAIN_ASSET, curr_loan.loan_asset, curr_loan.collateralSize,  curr_loan.hedgeSize, false, msg.sender);
+                    _loans[i].hedgeId = 0;
+                    _loans[i].collateralSize = 0;
+                    _loans[i].hedgeSize = 0;
+                    
+                    console.log("Closing a short");
                 }
             }
         }
@@ -95,6 +126,9 @@ contract Vault is ERC1155, ReentrancyGuard {
     }
 
     function createLoan(address _collateral, address _loan_asset, uint256 _collateral_amount, uint256 _loan_amount, uint256 _repaymentDate) external nonReentrant returns (uint256 loanId) {
+        require(IERC20(_collateral).balanceOf(address(msg.sender)) >= _collateral_amount, "Insufficient balance");
+        require(IERC20(_loan_asset).balanceOf(address(this)) >= _loan_amount, "Insufficient balance");
+
         Whitelisted memory details = WHITELISTED_DETAILS[_collateral];
 
         uint256 collateral_worth = getUSDValue(_collateral, _collateral_amount);
@@ -104,7 +138,12 @@ contract Vault is ERC1155, ReentrancyGuard {
         uint apr = details.MIN_APR;
         
         if (ltv > 0){
-            apr = Math.max(apr, ((details.slope * ltv) / 1000) - details.intercept);
+
+            if (((details.slope * ltv) / 1000) > details.intercept){
+                apr = Math.max(apr, ((details.slope * ltv) / 1000) - details.intercept);
+            }
+
+            
         }
 
         apr = Math.min(apr, details.MAX_APR);
@@ -130,7 +169,9 @@ contract Vault is ERC1155, ReentrancyGuard {
             principal: _loan_amount,
             repayment: repayment,
             lockedAmount: _collateral_amount,
-            hedgeId: 0
+            hedgeId: 0,
+            collateralSize: 0,
+            hedgeSize: 0
         });
 
         _mint(msg.sender, loanId, 1, "");
@@ -158,8 +199,8 @@ contract Vault is ERC1155, ReentrancyGuard {
 
         uint256 shares = _amount;
 
-        if (totalSupply > 0) {
-            shares =  _amount * (totalSupply / getBalanceIn(_asset));
+        if (totalSupply > 0) {            
+            shares =  _amount * (totalSupply / getUSDBalance());
         }
 
         bool success = IERC20(_asset).transferFrom(msg.sender, address(this), _amount);        
@@ -176,7 +217,7 @@ contract Vault is ERC1155, ReentrancyGuard {
 
         if (balance < shares) {revert();}
 
-        uint256 amount = shares * getBalanceIn(_asset) / totalSupply;
+        uint256 amount = shares * getUSDBalance() / totalSupply;
         if(IERC20(_asset).balanceOf(address(this)) < amount) {revert();}
 
         bool success = IERC20(_asset).transfer(msg.sender, amount);

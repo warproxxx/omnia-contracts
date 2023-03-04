@@ -6,6 +6,7 @@ struct VaultDetails {
     address ORACLE_CONTRACT;
     address GMX_CONTRACT;
     uint32 MAX_LEVERAGE;
+
 }
 
 struct Whitelisted{
@@ -16,6 +17,7 @@ struct Whitelisted{
     uint32 MIN_APR;
     uint32 slope;
     uint32 intercept;
+    uint32 MAX_EXPOSURE;
     bool lp_enabled;
 }
 
@@ -28,4 +30,7 @@ struct Loan {
     uint256 repayment;    
     uint256 lockedAmount;
     uint256 hedgeId;
+    uint256 collateralSize;
+    uint256 hedgeSize;
+
 }

@@ -29,7 +29,7 @@ describe('Contract tests', () => {
     })
 
     it("Add and remove liquidity", async function () {
-        amt = BigInt(10**18)
+        amt = BigInt(5000) * BigInt(10**18)
         await pairs['USDC'].approve(vault.address, ethers.constants.MaxUint256);
         await vault.addLiquidity(amt, pairs['USDC'].address);
         
@@ -40,22 +40,52 @@ describe('Contract tests', () => {
         expect(BigInt(await vault.getUSDBalance()) / BigInt(10**18) >= BigInt(1500))  
         await vault.withdrawLiquidity(amt, pairs['USDC'].address);
 
+        
         await vault.addLiquidity(amt, pairs['USDC'].address);
+
+        await pairs['WBTC'].approve(vault.address, ethers.constants.MaxUint256);
+
+        console.log(await pairs['WBTC'].balanceOf(owner.address))
+        await vault.addLiquidity(BigInt(10**18), pairs['WBTC'].address);
     })
 
     it("Take and Repay Loan", async function () {
         let currDate = Math.floor((new Date()).getTime() / 1000)
         let repaymentDate = currDate + (30 * 86400)
 
-        await vault.createLoan(pairs['USDC'].address, pairs['USDC'].address, BigInt(2) * BigInt(10**18) , BigInt(10**18), repaymentDate)
+        await vault.createLoan(pairs['WBTC'].address, pairs['USDC'].address,  BigInt(10**18), BigInt(1000) * BigInt(10**18) , repaymentDate)
 
         let loanDetails = await vault._loans(1)
 
-        expect((loanDetails.repayment / 10**18 ).toFixed(3)).to.equal('1.041');
-        expect((loanDetails.principal / 10**18 ).toFixed(3)).to.equal('1.000');
+        expect(parseInt(loanDetails.repayment / 10**18 )).to.equal(1041);
+        expect(parseInt(loanDetails.principal / 10**18 )).to.equal(1000);
 
         await pairs['USDC'].approve(vault.address, ethers.constants.MaxUint256);
         await vault.repayLoan(1)
+    })
+
+    it("Hedging", async function() {
+
+        let currDate = Math.floor((new Date()).getTime() / 1000)
+        let repaymentDate = currDate + (30 * 86400)
+
+        await vault.createLoan(pairs['WBTC'].address, pairs['USDC'].address,  BigInt(10**18), BigInt(1000) * BigInt(10**18) , repaymentDate)
+
+        await or.updatePrices([pairs['WBTC'].address], [BigInt(10) * BigInt(10**18)]);
+        await vault.hedgePositions()
+
+        await or.updatePrices([pairs['WBTC'].address], [BigInt(10) * BigInt(10**18)]);
+        await vault.hedgePositions()
+        
+        let loanDetails = await vault._loans(2)
+
+        expect(parseInt(loanDetails.hedgeId) != 0).to.equal(true);
+
+        await or.updatePrices([pairs['WBTC'].address], [BigInt(24000) * BigInt(10**18)]);
+
+        await vault.hedgePositions()
+        let loanDetails2 = await vault._loans(2)
+        expect(parseInt(loanDetails2.hedgeId) == 0).to.equal(true);
     })
 
 })  

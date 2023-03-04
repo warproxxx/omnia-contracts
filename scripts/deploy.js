@@ -26,6 +26,7 @@ function getGenericVaultParams(pairs) {
             params['MIN_APR'] = 500
             params['slope'] = 10 * 100
             params['intercept'] = 400
+            params['MAX_EXPOSURE'] = 5
 
         } else if (key == 'WBTC') {
             params['MAX_LTV'] = 90
@@ -34,6 +35,8 @@ function getGenericVaultParams(pairs) {
             params['MIN_APR'] = 500
             params['slope'] = 10 * 100
             params['intercept'] = 400
+            params['MAX_EXPOSURE'] = 5
+
 
         } else if (key == 'USDC') {
             params['MAX_LTV'] = 100
@@ -42,6 +45,7 @@ function getGenericVaultParams(pairs) {
             params['MIN_APR'] = 500
             params['slope'] = 10 * 100
             params['intercept'] = 400
+            params['MAX_EXPOSURE'] = 100
         }
 
         params['lp_enabled'] = true;
@@ -70,6 +74,13 @@ async function deployContracts(testnet=true){
 
     if (testnet == true) {
         const ERC20 = await ethers.getContractFactory("ERC20");
+
+        usdc = await ERC20.deploy(signer.address, BigInt(100000) * BigInt(10**18));
+        await usdc.deployed();  
+        console.log("USDC Contract Deployed at " + usdc.address);
+        pairs['USDC'] = usdc
+
+        
         weth = await ERC20.deploy(signer.address, BigInt(100) * BigInt(10**18));
         await weth.deployed();  
         console.log("WETH Contract Deployed at " + weth.address);
@@ -80,10 +91,7 @@ async function deployContracts(testnet=true){
         console.log("WBTC Contract Deployed at " + wbtc.address);
         pairs['WBTC'] = wbtc
 
-        usdc = await ERC20.deploy(signer.address, BigInt(100000) * BigInt(10**18));
-        await usdc.deployed();  
-        console.log("USDC Contract Deployed at " + usdc.address);
-        pairs['USDC'] = usdc
+
 
         await weth.mint(signer.address);
         await wbtc.mint(signer.address);
@@ -103,6 +111,12 @@ async function deployContracts(testnet=true){
     console.log("GMX Contract Deployed at " + gmx.address);
     addresses['GMX'] = or.address
 
+    if (testnet == true) {
+        await weth.mint(gmx.address);
+        await wbtc.mint(gmx.address);
+        await usdc.mint(gmx.address);
+    }
+
     const Vault = await ethers.getContractFactory("Vault");
     vb = await Vault.deploy()
     await vb.deployed();  
@@ -115,6 +129,8 @@ async function deployContracts(testnet=true){
 
     let [_VAULT_DETAILS, _WHITELISTED_ASSETS, _WHITELISTED_DETAILS] = getGenericVaultParams(pairs)
     _VAULT_DETAILS['GMX_CONTRACT'] = gmx.address
+
+    
     await vm.createVault(_VAULT_DETAILS, _WHITELISTED_ASSETS, _WHITELISTED_DETAILS, vb.address)
 
     console.log("Vault created")
