@@ -12,7 +12,7 @@ import { VaultDetails, Whitelisted, Loan, GMXPosition, Delta } from "./VaultLib.
 import "hardhat/console.sol";
 
 contract Vault is ERC1155, ReentrancyGuard {
-    VaultDetails public VAULT_DETAILS;
+    VaultDetails private VAULT_DETAILS;
     address[] public WHITELISTED_ASSETS;
     address private MAIN_ASSET;
 
@@ -20,7 +20,7 @@ contract Vault is ERC1155, ReentrancyGuard {
     mapping(uint256 => Loan) public _loans;
     mapping(address => uint256) private idx;
 
-    uint32 private constant LIQUIDITY_POSITION = 0;
+    // uint32 private constant LIQUIDITY_POSITION = 0;
     uint256 private _nextId = 1;
 
     uint256 public totalSupply = 0;
@@ -92,9 +92,6 @@ contract Vault is ERC1155, ReentrancyGuard {
                     usd_balance = usd_balance - delta;
                 }
             }
-
-            
-
         }
 
         //now check active loans
@@ -291,7 +288,7 @@ contract Vault is ERC1155, ReentrancyGuard {
     function addLiquidity(uint256 _amount, address _asset)  external nonReentrant {
 
         //Not in whitelist
-        require(WHITELISTED_DETAILS[_asset].lp_enabled == true, "2");
+        require(WHITELISTED_DETAILS[_asset].collection == 0x0000000000000000000000000000000000000000, "2");
 
         // commenting out for hackathon as its moot to check it as it will fail either way
         // require(IERC20(_asset).balanceOf(address(msg.sender)) >= _amount, "Insufficient balance");
@@ -310,14 +307,14 @@ contract Vault is ERC1155, ReentrancyGuard {
         bool success = IERC20(_asset).transferFrom(msg.sender, address(this), _amount);        
         if (success == false) {revert();}
         
-        _mint(msg.sender, LIQUIDITY_POSITION, shares, "");
+        _mint(msg.sender, 0, shares, "");
 
         // emit LiquidityAdded(_asset, _amount, shares, msg.sender);
         totalSupply = totalSupply + shares;
     }
 
     function withdrawLiquidity(uint256 shares, address _asset) external nonReentrant {
-        uint256 balance = this.balanceOf(msg.sender, LIQUIDITY_POSITION);
+        uint256 balance = this.balanceOf(msg.sender, 0);
 
         if (balance < shares) {revert();}
 
@@ -330,7 +327,7 @@ contract Vault is ERC1155, ReentrancyGuard {
 
         if (success){
             totalSupply = totalSupply - shares;
-            _burn(msg.sender, LIQUIDITY_POSITION, shares);
+            _burn(msg.sender, 0, shares);
             // emit LiquidtyRemoved(_asset, amount, shares, msg.sender);
         }
     }

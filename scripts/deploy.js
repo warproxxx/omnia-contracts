@@ -56,7 +56,6 @@ function getGenericVaultParams(pairs) {
             params['HEDGE_PERCENTAGE'] = 0
         }
 
-        params['lp_enabled'] = true;
         params['collateral_size'] = true;
 
         whitelisted.push(params)
