@@ -27,7 +27,7 @@ struct Whitelisted{
     uint32 HEDGE_AT; // the % change to hedge at
     uint32 MAX_DELTA_DIVERGENCE; //when a long or short is open, how much divergence is accepted before closing?
     uint32 HEDGE_PERCENTAGE; //how much % to hedge
-    uint256 collateral_size;
+    uint256 COLLATERAL_SIZE;
 }
 
 struct Loan {

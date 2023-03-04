@@ -146,9 +146,9 @@ contract Vault is ERC1155, ReentrancyGuard {
                     uint256 diff = pos.size - curr_delta.delta;
 
                     if (diff > allowed_divergence){
-                        uint256 decrease_size = ((WHITELISTED_DETAILS[curr_delta.collection].collateral_size * diff)/pos.size);
+                        uint256 decrease_size = ((WHITELISTED_DETAILS[curr_delta.collection].COLLATERAL_SIZE * diff)/pos.size);
                         IGMX(VAULT_DETAILS.GMX_CONTRACT).decreasePosition(msg.sender, MAIN_ASSET, curr_delta.collection, decrease_size, diff, false, msg.sender);
-                        WHITELISTED_DETAILS[curr_delta.collection].collateral_size = WHITELISTED_DETAILS[curr_delta.collection].collateral_size - decrease_size;
+                        WHITELISTED_DETAILS[curr_delta.collection].COLLATERAL_SIZE = WHITELISTED_DETAILS[curr_delta.collection].COLLATERAL_SIZE - decrease_size;
                     }
 
 
@@ -161,15 +161,15 @@ contract Vault is ERC1155, ReentrancyGuard {
                         IERC20(MAIN_ASSET).transfer(VAULT_DETAILS.GMX_CONTRACT, collateralSize);
                         IGMX(VAULT_DETAILS.GMX_CONTRACT).increasePosition(msg.sender, MAIN_ASSET, curr_delta.collection, diff, false);
 
-                        WHITELISTED_DETAILS[curr_delta.collection].collateral_size = WHITELISTED_DETAILS[curr_delta.collection].collateral_size + collateralSize;
+                        WHITELISTED_DETAILS[curr_delta.collection].COLLATERAL_SIZE = WHITELISTED_DETAILS[curr_delta.collection].COLLATERAL_SIZE + collateralSize;
                     }
 
                 }
 
             } else {
                 if (pos.size > allowed_divergence){
-                    IGMX(VAULT_DETAILS.GMX_CONTRACT).decreasePosition(msg.sender, MAIN_ASSET, curr_delta.collection, WHITELISTED_DETAILS[curr_delta.collection].collateral_size, pos.size, false, msg.sender);
-                    WHITELISTED_DETAILS[curr_delta.collection].collateral_size = 0;
+                    IGMX(VAULT_DETAILS.GMX_CONTRACT).decreasePosition(msg.sender, MAIN_ASSET, curr_delta.collection, WHITELISTED_DETAILS[curr_delta.collection].COLLATERAL_SIZE, pos.size, false, msg.sender);
+                    WHITELISTED_DETAILS[curr_delta.collection].COLLATERAL_SIZE = 0;
                 }
             }
         }
@@ -288,7 +288,7 @@ contract Vault is ERC1155, ReentrancyGuard {
     function addLiquidity(uint256 _amount, address _asset)  external nonReentrant {
 
         //Not in whitelist
-        require(WHITELISTED_DETAILS[_asset].collection == 0x0000000000000000000000000000000000000000, "2");
+        require(WHITELISTED_DETAILS[_asset].collection != 0x0000000000000000000000000000000000000000, "2");
 
         // commenting out for hackathon as its moot to check it as it will fail either way
         // require(IERC20(_asset).balanceOf(address(msg.sender)) >= _amount, "Insufficient balance");
