@@ -35,7 +35,7 @@ module.exports = {
       }
     },
     goerli: {
-      url: `https://eth-goerli.alchemyapi.io/v2/${process.env.ALCHEMY_API}`,
+      url: `https://goerli.infura.io/v3/1c7d55f483224d4f853864b2354c8671`,
       accounts: [process.env.ETH_KEY]
     },
   },

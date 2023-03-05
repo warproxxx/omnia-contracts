@@ -118,19 +118,6 @@
     "type": "event"
   },
   {
-    "inputs": [],
-    "name": "MAIN_ASSET",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "uint256",
@@ -200,9 +187,24 @@
         "type": "uint32"
       },
       {
-        "internalType": "bool",
-        "name": "lp_enabled",
-        "type": "bool"
+        "internalType": "uint32",
+        "name": "HEDGE_AT",
+        "type": "uint32"
+      },
+      {
+        "internalType": "uint32",
+        "name": "MAX_DELTA_DIVERGENCE",
+        "type": "uint32"
+      },
+      {
+        "internalType": "uint32",
+        "name": "HEDGE_PERCENTAGE",
+        "type": "uint32"
+      },
+      {
+        "internalType": "uint256",
+        "name": "COLLATERAL_SIZE",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -251,21 +253,6 @@
       {
         "internalType": "uint256",
         "name": "lockedAmount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "hedgeId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "collateralSize",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "hedgeSize",
         "type": "uint256"
       }
     ],
@@ -403,12 +390,34 @@
   },
   {
     "inputs": [],
-    "name": "getUSDBalance",
+    "name": "getUSDBalanceAndDelta",
     "outputs": [
       {
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
+      },
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "collection",
+            "type": "address"
+          },
+          {
+            "internalType": "bool",
+            "name": "direction",
+            "type": "bool"
+          },
+          {
+            "internalType": "uint256",
+            "name": "delta",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct Delta[]",
+        "name": "deltas",
+        "type": "tuple[]"
       }
     ],
     "stateMutability": "view",
@@ -527,9 +536,24 @@
             "type": "uint32"
           },
           {
-            "internalType": "bool",
-            "name": "lp_enabled",
-            "type": "bool"
+            "internalType": "uint32",
+            "name": "HEDGE_AT",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint32",
+            "name": "MAX_DELTA_DIVERGENCE",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint32",
+            "name": "HEDGE_PERCENTAGE",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint256",
+            "name": "COLLATERAL_SIZE",
+            "type": "uint256"
           }
         ],
         "internalType": "struct Whitelisted[]",
@@ -703,19 +727,6 @@
     "name": "swap",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "totalSupply",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {

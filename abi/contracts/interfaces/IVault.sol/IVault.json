@@ -81,9 +81,24 @@
             "type": "uint32"
           },
           {
-            "internalType": "bool",
-            "name": "lp_enabled",
-            "type": "bool"
+            "internalType": "uint32",
+            "name": "HEDGE_AT",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint32",
+            "name": "MAX_DELTA_DIVERGENCE",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint32",
+            "name": "HEDGE_PERCENTAGE",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint256",
+            "name": "COLLATERAL_SIZE",
+            "type": "uint256"
           }
         ],
         "internalType": "struct Whitelisted[]",

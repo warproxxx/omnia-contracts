@@ -128,6 +128,9 @@ async function deployContracts(testnet=true){
     const Vault = await ethers.getContractFactory("Vault");
     vb = await Vault.deploy()
     await vb.deployed();  
+
+    console.log("Vault Contract Deployed at " + vb.address);
+
     
     const VaultManager = await ethers.getContractFactory("VaultManager");
     let vm = await VaultManager.deploy(vb.address, or.address, signer.address);
