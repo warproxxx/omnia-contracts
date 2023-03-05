@@ -8,6 +8,13 @@ struct VaultDetails {
     uint32 MAX_LEVERAGE;
 }
 
+struct Delta {
+    address collection;
+    bool direction;
+    uint256 delta;
+}
+
+
 struct Whitelisted{
     address collection;
     uint32 MAX_LTV;
@@ -16,8 +23,11 @@ struct Whitelisted{
     uint32 MIN_APR;
     uint32 slope;
     uint32 intercept;
-    uint32 MAX_EXPOSURE;
-    bool lp_enabled;
+    uint32 MAX_EXPOSURE; // max exposure to this collection as a % of portfolio
+    uint32 HEDGE_AT; // the % change to hedge at
+    uint32 MAX_DELTA_DIVERGENCE; //when a long or short is open, how much divergence is accepted before closing?
+    uint32 HEDGE_PERCENTAGE; //how much % to hedge
+    uint256 COLLATERAL_SIZE;
 }
 
 struct Loan {
@@ -28,9 +38,6 @@ struct Loan {
     uint256 principal;
     uint256 repayment;    
     uint256 lockedAmount;
-    uint256 hedgeId;
-    uint256 collateralSize;
-    uint256 hedgeSize;
 
 }
 

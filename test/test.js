@@ -41,8 +41,8 @@ describe('Contract tests', () => {
         expect(BigInt(await vault.balanceOf(owner.address, 0))).to.equal(amt);
         expect(BigInt(await pairs['USDC'].balanceOf(vault.address)) >= amt).to.equal(true);
 
-
-        expect(BigInt(await vault.getUSDBalance()) / BigInt(10**18) >= BigInt(1500))  
+        let [usd_balance, delta] = await vault.getUSDBalanceAndDelta()
+        expect(BigInt(usd_balance) / BigInt(10**18) >= BigInt(1500))  
         await vault.withdrawLiquidity(amt, pairs['USDC'].address);
 
         
@@ -69,30 +69,6 @@ describe('Contract tests', () => {
         await vault.repayLoan(1)
     })
 
-    it("Hedging", async function() {
-
-        let currDate = Math.floor((new Date()).getTime() / 1000)
-        let repaymentDate = currDate + (30 * 86400)
-
-        await vault.createLoan(pairs['WBTC'].address, pairs['USDC'].address,  BigInt(10**14), BigInt(1000) * BigInt(10**14) , repaymentDate)
-
-        await or.updatePrices([pairs['WBTC'].address], [BigInt(10) * BigInt(10**14)]);
-        await vault.hedgePositions()
-
-        await or.updatePrices([pairs['WBTC'].address], [BigInt(10) * BigInt(10**18)]);
-        await vault.hedgePositions()
-        
-        let loanDetails = await vault._loans(2)
-
-        expect(parseInt(loanDetails.hedgeId) != 0).to.equal(true);
-
-        await or.updatePrices([pairs['WBTC'].address], [BigInt(24000) * BigInt(10**18)]);
-
-        await vault.hedgePositions()
-        let loanDetails2 = await vault._loans(2)
-        expect(parseInt(loanDetails2.hedgeId) == 0).to.equal(true);
-    })
-
     it("Swap", async function() {
         let signer_wbtc1 = await pairs['WBTC'].balanceOf(owner.address)
         let signer_usdc1 = await pairs['USDC'].balanceOf(owner.address)
@@ -109,7 +85,6 @@ describe('Contract tests', () => {
         let vault_usdc2 = await pairs['USDC'].balanceOf(vault.address)
 
         
-
         expect(signer_wbtc1 > signer_wbtc2).to.be.true;
         expect(vault_wbtc1 < vault_wbtc2).to.be.true;
 
@@ -117,5 +92,39 @@ describe('Contract tests', () => {
         expect(vault_usdc1 > vault_usdc2).to.be.true;
 
     })
+
+    it("Delta", async function() {
+        let [usd_balance, delta] = await vault.getUSDBalanceAndDelta()
+        expect(parseInt(BigInt(delta[0].delta) / BigInt(10**18))).to.equal(100004)
+        expect(parseInt(BigInt(delta[1].delta) / BigInt(10**18))).to.equal(0)
+        expect(parseInt(BigInt(delta[2].delta) / BigInt(10**18))).to.equal(26)
+
+    })
+
+    // it("Hedging", async function() {
+
+    //     let currDate = Math.floor((new Date()).getTime() / 1000)
+    //     let repaymentDate = currDate + (30 * 86400)
+
+    //     await vault.createLoan(pairs['WBTC'].address, pairs['USDC'].address,  BigInt(10**14), BigInt(1000) * BigInt(10**14) , repaymentDate)
+
+    //     await or.updatePrices([pairs['WBTC'].address], [BigInt(10) * BigInt(10**14)]);
+    //     await vault.hedgePositions()
+
+    //     await or.updatePrices([pairs['WBTC'].address], [BigInt(10) * BigInt(10**18)]);
+    //     await vault.hedgePositions()
+        
+    //     let loanDetails = await vault._loans(2)
+
+    //     expect(parseInt(loanDetails.hedgeId) != 0).to.equal(true);
+
+    //     await or.updatePrices([pairs['WBTC'].address], [BigInt(24000) * BigInt(10**18)]);
+
+    //     await vault.hedgePositions()
+    //     let loanDetails2 = await vault._loans(2)
+    //     expect(parseInt(loanDetails2.hedgeId) == 0).to.equal(true);
+    // })
+
+
 
 })  
