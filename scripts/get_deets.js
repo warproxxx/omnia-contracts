@@ -4,11 +4,20 @@ const {ORACLE, VAULT_MANAGER, VAULTMANAGER_ABI, ORACLE_ABI, VAULT, VAULT_ABI, ER
 
 async function main(){
     let [signer] = await ethers.getSigners();
-    let contract = new ethers.Contract( VAULT, VAULT_ABI, signer);
-    let token_contract = new ethers.Contract( '0x307b2db2E2F12a9979175b0867C59963fC0e8064', ERC20_ABI, signer);
+    
+    let vm = new ethers.Contract(VAULT_MANAGER, VAULTMANAGER_ABI, signer);
+    console.log(await vm.getVaults())
 
-    console.log("Approved")
+    let contract = new ethers.Contract( VAULT, VAULT_ABI, signer);
+
+    let token_contract = new ethers.Contract( '0x307b2db2E2F12a9979175b0867C59963fC0e8064', ERC20_ABI, signer);
+    await token_contract.mint(signer.address)
+    console.log("Minted")
     await token_contract.approve(VAULT, ethers.constants.MaxUint256);
+    console.log("Approved")
+
+
+
 
     console.log("Adding liquidity")
     await contract.addLiquidity(10, '0x307b2db2E2F12a9979175b0867C59963fC0e8064')
