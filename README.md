@@ -25,7 +25,7 @@ We believe that the current DeFi Vaults are too disconnected and don't allow or 
 
 Thus we create a skeleton to a direction in which complex strategies and hedging logic can be created in Vaults and executed seamlessly for the user. We envision Omnia as an ecosystem where different Vaults use different strategies, metrics, and hedging logic, like selling options and perps, to deal with different assets and create a one-stop shop for different action for the user.
 
-#ETH Denver 2023 BUIDLathon
+# ETH Denver 2023 BUIDLathon
 
 ### 🚝Track: 
 #### Decentralized Finance
