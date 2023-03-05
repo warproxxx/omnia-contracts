@@ -127,51 +127,51 @@ contract Vault is ERC1155, ReentrancyGuard {
 
 
     function hedgePositions() external {
-        // (uint256 usd_balance, Delta[] memory deltas) = getUSDBalanceAndDelta();
+        (uint256 usd_balance, Delta[] memory deltas) = getUSDBalanceAndDelta();
 
 
-        // for (uint i=0; i < deltas.length; i++ ) {
-        //     Delta memory curr_delta = deltas[i];
+        for (uint i=0; i < deltas.length; i++ ) {
+            Delta memory curr_delta = deltas[i];
             
-        //     GMXPosition memory pos = IGMX(VAULT_DETAILS.GMX_CONTRACT).getPosition(msg.sender, MAIN_ASSET, curr_delta.collection, false);
+            GMXPosition memory pos = IGMX(VAULT_DETAILS.GMX_CONTRACT).getPosition(msg.sender, MAIN_ASSET, curr_delta.collection, false);
             
 
-        //     uint256 allowed_divergence = (WHITELISTED_DETAILS[curr_delta.collection].MAX_DELTA_DIVERGENCE * usd_balance) / 100;
+            uint256 allowed_divergence = (WHITELISTED_DETAILS[curr_delta.collection].MAX_DELTA_DIVERGENCE * usd_balance) / 100;
 
 
-        //     if (curr_delta.delta * 100 / usd_balance > WHITELISTED_DETAILS[curr_delta.collection].HEDGE_AT ){
-        //         if (pos.size > curr_delta.delta){
-        //             uint256 diff = pos.size - curr_delta.delta;
+            if (curr_delta.delta * 100 / usd_balance > WHITELISTED_DETAILS[curr_delta.collection].HEDGE_AT ){
+                if (pos.size > curr_delta.delta){
+                    uint256 diff = pos.size - curr_delta.delta;
 
-        //             if (diff > allowed_divergence){
-        //                 uint256 decrease_size = ((WHITELISTED_DETAILS[curr_delta.collection].COLLATERAL_SIZE * diff)/pos.size);
-        //                 IGMX(VAULT_DETAILS.GMX_CONTRACT).decreasePosition(msg.sender, MAIN_ASSET, curr_delta.collection, decrease_size, diff, false, msg.sender);
-        //                 WHITELISTED_DETAILS[curr_delta.collection].COLLATERAL_SIZE -= decrease_size;
-        //             }
+                    if (diff > allowed_divergence){
+                        uint256 decrease_size = ((WHITELISTED_DETAILS[curr_delta.collection].COLLATERAL_SIZE * diff)/pos.size);
+                        IGMX(VAULT_DETAILS.GMX_CONTRACT).decreasePosition(msg.sender, MAIN_ASSET, curr_delta.collection, decrease_size, diff, false, msg.sender);
+                        WHITELISTED_DETAILS[curr_delta.collection].COLLATERAL_SIZE -= decrease_size;
+                    }
 
 
-        //         } else if (pos.size < curr_delta.delta){
-        //             uint256 diff = curr_delta.delta - pos.size;
+                } else if (pos.size < curr_delta.delta){
+                    uint256 diff = curr_delta.delta - pos.size;
 
-        //             if (diff > allowed_divergence){
-        //                 uint256 collateralSize = diff * 2;
+                    if (diff > allowed_divergence){
+                        uint256 collateralSize = diff * 2;
                         
-        //                 IERC20(MAIN_ASSET).approve(VAULT_DETAILS.GMX_CONTRACT, collateralSize);
-        //                 IERC20(MAIN_ASSET).transfer(VAULT_DETAILS.GMX_CONTRACT, collateralSize);
-        //                 IGMX(VAULT_DETAILS.GMX_CONTRACT).increasePosition(msg.sender, MAIN_ASSET, curr_delta.collection, diff, false);
+                        IERC20(MAIN_ASSET).approve(VAULT_DETAILS.GMX_CONTRACT, collateralSize);
+                        IERC20(MAIN_ASSET).transfer(VAULT_DETAILS.GMX_CONTRACT, collateralSize);
+                        IGMX(VAULT_DETAILS.GMX_CONTRACT).increasePosition(msg.sender, MAIN_ASSET, curr_delta.collection, diff, false);
 
-        //                 WHITELISTED_DETAILS[curr_delta.collection].COLLATERAL_SIZE += collateralSize;
-        //             }
+                        WHITELISTED_DETAILS[curr_delta.collection].COLLATERAL_SIZE += collateralSize;
+                    }
 
-        //         }
+                }
 
-        //     } else {
-        //         if (pos.size > allowed_divergence){
-        //             IGMX(VAULT_DETAILS.GMX_CONTRACT).decreasePosition(msg.sender, MAIN_ASSET, curr_delta.collection, WHITELISTED_DETAILS[curr_delta.collection].COLLATERAL_SIZE, pos.size, false, msg.sender);
-        //             WHITELISTED_DETAILS[curr_delta.collection].COLLATERAL_SIZE = 0;
-        //         }
-        //     }
-        // }
+            } else {
+                if (pos.size > allowed_divergence){
+                    IGMX(VAULT_DETAILS.GMX_CONTRACT).decreasePosition(msg.sender, MAIN_ASSET, curr_delta.collection, WHITELISTED_DETAILS[curr_delta.collection].COLLATERAL_SIZE, pos.size, false, msg.sender);
+                    WHITELISTED_DETAILS[curr_delta.collection].COLLATERAL_SIZE = 0;
+                }
+            }
+        }
     }
 
     // function getBalanceIn(address _asset) public view returns (uint256) {
