@@ -5,6 +5,7 @@ in omnia paratus Latin phrase
 
 : prepared in all things : ready for anything
 
+- <a href="https://www.loom.com/share/251a00ec14804cf597719e33dd317520">Demo Video</a>
 - <a href="https://omnia-ui-qd8h.vercel.app/">Deployment</a>
 - <a href="https://github.com/warproxxx/omnia-backtest">Backtest</a>
 - <a href="https://github.com/warproxxx/omnia-ui">UI</a>
