@@ -4,7 +4,10 @@ const {ORACLE, VAULT_MANAGER, VAULTMANAGER_ABI, ORACLE_ABI, VAULT, VAULT_ABI, ER
 
 async function main(){
     let [signer] = await ethers.getSigners();
-    console.log(signer.address)
+    
+    let vm = new ethers.Contract(VAULT_MANAGER, VAULTMANAGER_ABI, signer);
+    console.log(await vm.getVaults())
+
     let contract = new ethers.Contract( VAULT, VAULT_ABI, signer);
 
     let token_contract = new ethers.Contract( '0x307b2db2E2F12a9979175b0867C59963fC0e8064', ERC20_ABI, signer);
