@@ -9,8 +9,6 @@ import { IGMX } from "./interfaces/IGMX.sol";
 
 import { VaultDetails, Whitelisted, Loan, GMXPosition, Delta } from "./VaultLib.sol";
 
-import "hardhat/console.sol";
-
 contract Vault is ERC1155, ReentrancyGuard {
     VaultDetails private VAULT_DETAILS;
     address[] public WHITELISTED_ASSETS;
@@ -22,8 +20,7 @@ contract Vault is ERC1155, ReentrancyGuard {
 
     // uint32 private constant LIQUIDITY_POSITION = 0;
     uint256 private _nextId = 1;
-
-    uint256 public totalSupply = 0;
+    uint256 private totalSupply = 0;
 
     // event LiquidityAdded(address asset, uint256 amount, uint256 shares, address _lp);
     // event LiquidtyRemoved(address asset, uint256 amount, uint256 shares, address _lp);
@@ -67,6 +64,7 @@ contract Vault is ERC1155, ReentrancyGuard {
 
             deltas[curr_idx].delta = deltas[curr_idx].delta + curr_balance;
             deltas[curr_idx].direction = true;
+            deltas[curr_idx].collection = WHITELISTED_ASSETS[i];
 
             //now for hedges
             GMXPosition memory pos = IGMX(VAULT_DETAILS.GMX_CONTRACT).getPosition(msg.sender, MAIN_ASSET, WHITELISTED_ASSETS[i], false);
@@ -148,7 +146,7 @@ contract Vault is ERC1155, ReentrancyGuard {
                     if (diff > allowed_divergence){
                         uint256 decrease_size = ((WHITELISTED_DETAILS[curr_delta.collection].COLLATERAL_SIZE * diff)/pos.size);
                         IGMX(VAULT_DETAILS.GMX_CONTRACT).decreasePosition(msg.sender, MAIN_ASSET, curr_delta.collection, decrease_size, diff, false, msg.sender);
-                        WHITELISTED_DETAILS[curr_delta.collection].COLLATERAL_SIZE = WHITELISTED_DETAILS[curr_delta.collection].COLLATERAL_SIZE - decrease_size;
+                        WHITELISTED_DETAILS[curr_delta.collection].COLLATERAL_SIZE -= decrease_size;
                     }
 
 
@@ -157,11 +155,12 @@ contract Vault is ERC1155, ReentrancyGuard {
 
                     if (diff > allowed_divergence){
                         uint256 collateralSize = diff * 2;
+                        
                         IERC20(MAIN_ASSET).approve(VAULT_DETAILS.GMX_CONTRACT, collateralSize);
                         IERC20(MAIN_ASSET).transfer(VAULT_DETAILS.GMX_CONTRACT, collateralSize);
                         IGMX(VAULT_DETAILS.GMX_CONTRACT).increasePosition(msg.sender, MAIN_ASSET, curr_delta.collection, diff, false);
 
-                        WHITELISTED_DETAILS[curr_delta.collection].COLLATERAL_SIZE = WHITELISTED_DETAILS[curr_delta.collection].COLLATERAL_SIZE + collateralSize;
+                        WHITELISTED_DETAILS[curr_delta.collection].COLLATERAL_SIZE += collateralSize;
                     }
 
                 }
