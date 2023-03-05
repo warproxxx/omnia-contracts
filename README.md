@@ -1,5 +1,9 @@
 # Omnia Protocol
 
+- <a href="https://omnia-ui-qd8h.vercel.app/">Deployment</a>
+- <a href="https://github.com/warproxxx/omnia-backtest">Backtest</a>
+- <a href="https://github.com/warproxxx/omnia-ui">UI</a>
+
 <p align="center">
   <img alt="" src="./public/2.jpeg" width="45%">
 &nbsp; &nbsp; &nbsp; &nbsp;
