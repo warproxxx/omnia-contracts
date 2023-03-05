@@ -6,7 +6,8 @@
   "scripts": {
     "test": "npx hardhat test",
     "deploy:localhost": "npx hardhat run scripts/deploy.js --network localhost",
-    "deploy:goerli": "npx hardhat run scripts/deploy.js --network goerli" 
+    "deploy:goerli": "npx hardhat run scripts/deploy.js --network goerli",
+    "debug": "npx hardhat run scripts/get_deets.js --network localhost"
   },
   "repository": {
     "type": "git",

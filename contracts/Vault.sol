@@ -20,7 +20,7 @@ contract Vault is ERC1155, ReentrancyGuard {
 
     // uint32 private constant LIQUIDITY_POSITION = 0;
     uint256 private _nextId = 1;
-    uint256 private totalSupply = 0;
+    uint256 public totalSupply = 0;
 
     // event LiquidityAdded(address asset, uint256 amount, uint256 shares, address _lp);
     // event LiquidtyRemoved(address asset, uint256 amount, uint256 shares, address _lp);

@@ -119,11 +119,6 @@ async function deployContracts(testnet=true){
     console.log("GMX Contract Deployed at " + gmx.address);
     addresses['GMX'] = or.address
 
-    if (testnet == true) {
-        await weth.mint(gmx.address);
-        await wbtc.mint(gmx.address);
-        await usdc.mint(gmx.address);
-    }
 
     const Vault = await ethers.getContractFactory("Vault");
     vb = await Vault.deploy()
@@ -185,11 +180,14 @@ async function deploy(){
         }
     })
 
+    let vault = vm.getVaults()[0]
+
     ABI_STRING = ABI_STRING + "\n\n"
 
     ABI_STRING = ABI_STRING + "let VAULT_MANAGER='" + vm.address + "'\n"
     ABI_STRING = ABI_STRING + "let ORACLE='" + or.address + "'\n\n"
-    
+    ABI_STRING = ABI_STRING + "let VAULT='" + vault + "'\n\n"
+
     let pair_dict = {}
 
     for (const [key, value] of Object.entries(pairs)) {
@@ -199,7 +197,7 @@ async function deploy(){
     ABI_STRING = ABI_STRING + "let PAIRS=" + JSON.stringify(pair_dict) + "\n\n"
 
 
-    export_string = export_string + "ORACLE,VAULT_MANAGER,PAIRS}"
+    export_string = export_string + "ORACLE,VAULT_MANAGER,VAULT,PAIRS}"
 
     ABI_STRING = ABI_STRING + export_string
 
