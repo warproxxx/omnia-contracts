@@ -1,10 +1,6 @@
 ![OMNIA Card](readme_images/OMNIA_card_official.png)
 # Omnia Protocol
 
-in omnia paratus Latin phrase
-
-: prepared in all things : ready for anything
-
 - <a href="https://www.loom.com/share/251a00ec14804cf597719e33dd317520">Demo Video</a>
 - <a href="https://omnia-ui-qd8h.vercel.app/">Deployment</a>
 - <a href="https://github.com/warproxxx/omnia-backtest">Backtest</a>
@@ -14,7 +10,7 @@ in omnia paratus Latin phrase
   <img alt="" src="./public/2.jpeg" width="45%">
 &nbsp; &nbsp; &nbsp; &nbsp;
   <img alt="" src="./public/3.jpeg" width="45%">
-</p>
+</p>https://github.com/warproxxx/omnia-contracts
 
 
 Omnia is a Highly Efficient DeFi protocol that integrates hedging and complex market-making logic to provide multiple services to ERC20 assets from a single vault.
@@ -31,36 +27,6 @@ We believe that the current DeFi Vaults are too disconnected and don't allow or 
 
 Thus we create a skeleton to a direction in which complex strategies and hedging logic can be created in Vaults and executed seamlessly for the user. We envision Omnia as an ecosystem where different Vaults use different strategies, metrics, and hedging logic, like selling options and perps, to deal with different assets and create a one-stop shop for different action for the user.
 
-# ETH Denver 2023 BUIDLathon
-
-### 🚝Track: 
-#### Decentralized Finance
-
-### 💰 Bounties:
-##### - Web3Modal Theming Challenge
-OMNIA utilizes and customize the Web3Modal theming to match the OMNIA brand. That includes both **color** and **font**. Here is a screenshot of the Web3Modal theme in action:
-
-###### Web3modal
-![OMNIA Card](readme_images/Web3ModalThemeing1.PNG)
-
-###### Web3modal button
-![OMNIA Card](readme_images/Web3ModalThemeing2.PNG)
-
-##### - Web3Modal Creative Challenge
-All smart contract transactions in OMNIA are initialized via the Web3Modal SDK. This allows users to connect to their wallet of choice and sign transactions. In OMNIA, all wallet states are handled by Web3Modal.
-
-All contracts transactions are located in the src/hooks/useContractHelpers.ts file. Which utlizie the wagmi SDK to get the signer and initialize the contract.
-
-For example this is one of the function that checks for WETH approval 
-![OMNIA Card](readme_images/code1.png)
-
-
-##### - Web3Modal DeFi Challenge: Making Bank (Without the Banks)
-OMNIA UI provides a simple and easy user interface for users to interact with the OMNIA smart contracts. Web3Modal plays a crucial role in all of the transactions that occur in the OMNIA.
-
-##### - Chainlink Functions
-##### - Connect the world with Chainlink
-OMNIA portocol utilizes Chainlink to get the price of ETH, BTC, and USDC for swap and loan.
 
 # Repository
 The contracts are located in contracts folder and tests in tests folder. This repository is a part of stack which includes <a href="https://github.com/warproxxx/omnia-backtest">omnia-backtests</a> and <a href="https://github.com/warproxxx/omnia-ui">omnia-ui</a> made with a couple sleepless nights in ETHDenver 2023.
@@ -72,9 +38,3 @@ Copy the .env-example and make .env to start the repo. Run tests with:
 
 To deploy on goerli:
 >npm run deploy:goerli
-
-# Easter Egg
-
-The name OMNIA is a reference to the Latin phrase "in omnia paratus" which means "prepared in all things". In the case of a defi protocol, this means that the protocol is connected to all the major DeFi protocols and is ready to interact with them.
-
-The OMNIA logo is a reference to the two ravens of Odin in the norse mythology. The two ravens are called Huginn and Muninn, which means "thought" and "memory" respectively. The two ravens are sent out every morning to fly all over the world and gather information. They then return to Odin and tell him everything they have seen. This is a reference to the fact that OMNIA will be connected to all the major DeFi protocols and will be able to work with all of them.
