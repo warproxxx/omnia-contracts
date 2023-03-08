@@ -10,7 +10,7 @@
   <img alt="" src="./public/2.jpeg" width="45%">
 &nbsp; &nbsp; &nbsp; &nbsp;
   <img alt="" src="./public/3.jpeg" width="45%">
-</p>https://github.com/warproxxx/omnia-contracts
+</p>
 
 
 Omnia is a Highly Efficient DeFi protocol that integrates hedging and complex market-making logic to provide multiple services to ERC20 assets from a single vault.
